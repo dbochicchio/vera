@@ -1,0 +1,231 @@
+{
+	"default_icon": "water_valve_closed.png",
+	"imgIconBody": "",
+	"halloIconsDir": "pics/hallo",
+	"state_icons": [
+		{
+			"img": "water_valve_closed.png",
+			"conditions": [
+				{
+					"service": "urn:upnp-org:serviceId:SwitchPower1",
+					"variable": "Status",
+					"operator": "==",
+					"value": 0
+				}
+			]
+		},
+		{
+			"img": "water_valve_open.png",
+			"conditions": [
+				{
+					"service": "urn:upnp-org:serviceId:SwitchPower1",
+					"variable": "Status",
+					"operator": "==",
+					"value": 1
+				}
+			]
+		}
+	],
+	"x": "2",
+	"y": "4",
+	"inScene": "1",
+	"DisplayStatus": {
+		"Service": "urn:upnp-org:serviceId:SwitchPower1",
+		"Variable": "Status",
+		"MinValue": "0",
+		"MaxValue": "1"
+	},
+	"doc_url": {
+		"doc_language": 1,
+		"doc_manual": 1,
+		"doc_version": 1,
+		"doc_platform": 0,
+		"doc_page": "devices"
+	},
+	"ToggleButton": 1,
+	"Tabs": [
+		{
+			"Label": {
+				"lang_tag": "tabname_control",
+				"text": "Control"
+			},
+			"Position": "0",
+			"TabType": "flash",
+			"ControlGroup": [
+				{
+					"id": "1",
+					"isSingle": "1",
+					"scenegroup": "1"
+				},
+				{
+					"id": "2",
+					"isSingle": "1",
+					"scenegroup": "1"
+				}
+			],
+			"SceneGroup": [
+				{
+					"id": "1",
+					"top": "2",
+					"left": "0",
+					"x": "2",
+					"y": "1"
+				}
+			],
+			"Control": [
+				{
+					"ControlGroup": "2",
+					"ControlType": "button",
+					"top": "0",
+					"left": "1",
+					"Label": {
+						"lang_tag": "cmd_auto",
+						"text": "Auto"
+					},
+					"Display": {
+						"Service": "urn:upnp-org:serviceId:SwitchPower1",
+						"Variable": "Status",
+						"Value": "1",
+						"Top": 60,
+						"Left": 145,
+						"Width": 75,
+						"Height": 20
+					},
+					"Command": {
+						"Service": "urn:upnp-org:serviceId:SwitchPower1",
+						"Action": "SetTarget",
+						"Parameters": [
+							{
+								"Name": "newTargetValue",
+								"Value": "1"
+							}
+						]
+					},
+					"ControlCode": "power_on"
+				},
+				{
+					"ControlGroup": "1",
+					"ControlType": "button",
+					"top": "0",
+					"left": "0",
+					"Label": {
+						"lang_tag": "cmd_disabled",
+						"text": "Disabled"
+					},
+					"Display": {
+						"Service": "urn:upnp-org:serviceId:SwitchPower1",
+						"Variable": "Status",
+						"Value": "0",
+						"Top": 60,
+						"Left": 50,
+						"Width": 75,
+						"Height": 20
+					},
+					"Command": {
+						"Service": "urn:upnp-org:serviceId:SwitchPower1",
+						"Action": "SetTarget",
+						"Parameters": [
+							{
+								"Name": "newTargetValue",
+								"Value": "0"
+							}
+						]
+					},
+					"ControlCode": "power_off"
+				}
+			]
+		},
+		{
+			"Label": {
+				"lang_tag": "logs",
+				"text": "Logs"
+			},
+			"Position": "4",
+			"TabType": "javascript",
+			"ScriptName": "shared.js",
+			"Function": "device_logs"
+		},
+		{
+			"Label": {
+				"lang_tag": "notifications",
+				"text": "Notifications"
+			},
+			"Position": "5",
+			"TabType": "javascript",
+			"ScriptName": "shared.js",
+			"Function": "device_notifications"
+		}
+	],
+	"sceneList": {
+		"group_1": {
+			"cmd_1": {
+				"label": "ON",
+				"serviceId": "urn:upnp-org:serviceId:SwitchPower1",
+				"action": "SetTarget",
+				"arguments": {
+					"newTargetValue": "1"
+				},
+				"display": {
+					"service": "urn:upnp-org:serviceId:SwitchPower1",
+					"variable": "Status",
+					"value": "1"
+				}
+			},
+			"cmd_2": {
+				"label": "OFF",
+				"serviceId": "urn:upnp-org:serviceId:SwitchPower1",
+				"action": "SetTarget",
+				"arguments": {
+					"newTargetValue": "0"
+				},
+				"display": {
+					"service": "urn:upnp-org:serviceId:SwitchPower1",
+					"variable": "Status",
+					"value": "0"
+				}
+			}
+		}
+	},
+	"eventList2": [
+		{
+			"id": 1,
+			"label": {
+				"lang_tag": "a_device_is_turned_on_off",
+				"text": "A device is turned on or off"
+			},
+			"serviceId": "urn:upnp-org:serviceId:SwitchPower1",
+			"argumentList": [
+				{
+					"id": 1,
+					"dataType": "boolean",
+					"defaultValue": "1",
+					"allowedValueList": [
+						{
+							"Off": "0",
+							"HumanFriendlyText": {
+								"lang_tag": "hft_device_turned_off",
+								"text": "_DEVICE_NAME_ is turned off"
+							}
+						},
+						{
+							"On": "1",
+							"HumanFriendlyText": {
+								"lang_tag": "hft_device_turned_on",
+								"text": "_DEVICE_NAME_ is turned on"
+							}
+						}
+					],
+					"name": "Status",
+					"comparisson": "=",
+					"prefix": {
+						"lang_tag": "which_mode",
+						"text": "Which mode"
+					},
+					"suffix": {}
+				}
+			]
+		}
+	],
+	"DeviceType": "urn:fowler-cc:device:BinarySprinkler:1",
+	"device_type": "urn:fowler-cc:device:BinarySprinkler:1"
+}
