@@ -1,14 +1,8 @@
 {
-	"default_icon": "http://opensprinkler.cfowl.postinbox.com/Sprinkler.png",
-	"imgIconBody": "",
-	"imgIconDimmable": "",
-	"imgIconTurnable": "",
-	"imgIconMin": "icons/Binary_Light_0.png",
-	"imgIconMax": "icons/Binary_Light.png",
-	"halloIconsDir": "pics/hallo",
+	"default_icon": "water_valve_closed.png",
 	"state_icons": [
 		{
-			"img": "http://opensprinkler.cfowl.postinbox.com/Sprinkler_0.png",
+			"img": "water_valve_closed.png",
 			"conditions": [
 				{
 					"service": "urn:upnp-org:serviceId:SwitchPower1",
@@ -19,7 +13,7 @@
 			]
 		},
 		{
-			"img": "http://opensprinkler.cfowl.postinbox.com/Sprinkler_100.png",
+			"img": "water_valve_open.png",
 			"conditions": [
 				{
 					"service": "urn:upnp-org:serviceId:SwitchPower1",
@@ -233,4 +227,3 @@
 	"DeviceType": "urn:fowler-cc:device:BinarySprinkler:1",
 	"device_type": "urn:fowler-cc:device:BinarySprinkler:1"
 }
- 
