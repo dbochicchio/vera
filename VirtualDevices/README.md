@@ -68,3 +68,5 @@ The devices are working and supported under OpenLuup and ALTUI. In this case, ju
 
 ### Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).
+
+https://community.getvera.com/t/virtual-http-light-devices-supporting-rgb-ww-dimmers-switch-and-much-more-tasmota-esp-shelly/209297
