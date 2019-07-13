@@ -11,12 +11,12 @@ Partially based with permission on [Yeelight-Vera](https://github.com/toggledbit
 To install, simply upload this files using Vera's and then create a new device using these files.
 Every time you want a virtual device, just repeat this operation.
 
-### Dimmers
-- Device File: D_DimmableLight1.xml
-- Implementation file: I_VirtualBinaryLight1.xml
-- 
 ### Switch
 - Device File: D_BinaryLight1.xml
+- Implementation file: I_VirtualBinaryLight1.xml
+
+### Dimmers
+- Device File: D_DimmableLight1.xml
 - Implementation file: I_VirtualBinaryLight1.xml
 
 ### RGB(CCT) Lights
