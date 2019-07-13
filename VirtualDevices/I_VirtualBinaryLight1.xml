@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<implementation>
+	<functions>
+		function startupPlugin(devNum)
+			luup.log("VirtualBinaryLight starting...")
+			VirtualBinaryLight1 = require("L_VirtualBinaryLight1")
+			return VirtualBinaryLight1.startPlugin(devNum)
+		end
+	</functions>
+	<startup>startupPlugin</startup>
+	<actionList>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+			<name>SetTarget</name>
+			<run>
+				VirtualBinaryLight1.actionPower(lul_settings.newTargetValue,lul_device)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
+			<name>SetLoadLevelTarget</name>
+			<run>
+				VirtualBinaryLight1.actionBrightness(lul_settings.newLoadlevelTarget,lul_device)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
+			<name>ToggleState</name>
+			<run>
+				VirtualBinaryLight1.actionToggleState(lul_device)
+				return 4,0
+			</run>
+		</action>
+	</actionList>
+</implementation>
