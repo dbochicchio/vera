@@ -1,5 +1,5 @@
 # Virtual HTTP Light Devices plug-in for Vera
-This plug-in intented to provide support to RGB, Dimmers and Binary Lights that performs their action using HTTP calls.
+This plug-in intented to provide support to RGB(CCT), Dimmers and Binary Lights that performs their action using HTTP calls.
 
 This plug-in is suitable to be used with Tasmota, Shelly or similar device. It could be used to simulate the entire set of options, still using a native interface and native services, with 100% compatibility to external plug-ins or code.
 
@@ -19,7 +19,7 @@ Every time you want a virtual device, just repeat this operation.
 - Device File: D_BinaryLight1.xml
 - Implementation file: I_VirtualBinaryLight1.xml
 
-### RGB Lights
+### RGB(CCT) Lights
 - Device File: D_DimmableRGBLight1.xml
 - Implementation file: I_VirtualBinaryLight1.xml
 
@@ -62,6 +62,9 @@ This integration is useful when the Vera system is the primary and only controll
 It's possible to sync the status, using standard Vera calls:
 
 http://veraip:3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=336699
+
+### OpenLuup/ALTUI
+The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
 
 ### Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).
