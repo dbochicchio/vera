@@ -1,14 +1,14 @@
 # Vera
-LUA Scripts for the MiCasaVerde Vera Platform.
+Various plug-ins for Vera Platform.
 
-Based on OpenSprinkler PlugIn by ChrisFSB
-http://code.mios.com/trac/mios_opensprinkler
+# Virtual HTTP Light Devices plug-in for Vera
+This plug-in represent a virtual device that performs HTTP calls, starting from a standard Vera device.
+This is 100% compatible with Vera UI, mobile apps and act as a standard control in that sense.
+The plug-in covers RGB Lights, Dimmers and Switch Lights.
 
-# Installation
-To install, simply upload this files and then create a new device using this files:
-- D_OpenSprinkler1_UI7.xml
-- D_OpenSprinkler1_UI7.json
+[More info](VirtualDevices/)
 
-Set your IP and password and you're good to go.
+# OpenSprinkler
+This plug-in offers support for OpenSprinkler inside Vera.
 
-Thanks to @ricciolo for this help.
+[More info](OpenSprinkler/)
