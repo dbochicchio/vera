@@ -15,7 +15,7 @@ local COMMANDS_SETPOWER = "SetPowerURL"
 local COMMANDS_SETBRIGHTNESS = "SetBrightnessURL"
 local COMMANDS_SETRGBCOLOR = "SetRGBColorURL"
 local COMMANDS_SETWHITETEMPERATURE = "SetWhiteTemperatureURL"
-local COMMANDS_TOGGLE = "ToggleURL"
+local COMMANDS_TOGGLE = "SetToggleURL"
 
 local localColors = {} -- locally defined colors are saved here
 local mfgcolor = {}
