@@ -10,7 +10,7 @@ local DIMMERSID = "urn:upnp-org:serviceId:Dimming1"
 
 local COMMANDS_SETPOWER = "SetPowerURL"
 local COMMANDS_SETBRIGHTNESS = "SetBrightnessURL"
-local COMMANDS_TOGGLE = "ToggleURL"
+local COMMANDS_TOGGLE = "SetToggleURL"
 
 local function dump(t, seen)
     if t == nil then return "nil" end
