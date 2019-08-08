@@ -23,7 +23,7 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 
 ### RGB(CCT) Lights
 - Upnp Device Filename/Device File: D_DimmableRGBLight1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
+- Upnp Implementation Filename/Implementation file: I_VirtualRGBW1.xml
 
 ### Configuration
 All devices are auto-configured. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
