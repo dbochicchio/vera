@@ -278,7 +278,7 @@ function startPlugin(devNum)
 	initVar(COMMANDS_TOGGLE, "http://", devNum, MYSID)
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("category_num") == null then
+	if luup.attr_get("category_num") == nil then
 		local category_num = 3
 		if deviceType == "D_DimmableLight1.xml" then category_num = 2 end -- dimmer
 
@@ -286,7 +286,7 @@ function startPlugin(devNum)
 	end
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("subcategory_num") == null then
+	if luup.attr_get("subcategory_num") == nil then
 		luup.attr_set("subcategory_num", "3", devNum) -- in wall switch
 	end
 
