@@ -2,13 +2,9 @@
 <implementation>
 	<functions>
 		function startupPlugin(devNum)
-		luup.log("VirtualRGBW starting...")
-		VirtualRGBW1 = require("L_VirtualRGBW1")
-
-		virtualRGBW1RequestHandler = VirtualRGBW1.handleLuupRequest
-		luup.register_handler("virtualRGBW1RequestHandler", "virtualRGBW1")
-
-		return VirtualRGBW1.startPlugin(devNum)
+  		luup.log("VirtualRGBW starting...")
+		  VirtualRGBW1 = require("L_VirtualRGBW1")
+		  return VirtualRGBW1.startPlugin(devNum)
 		end
 	</functions>
 	<startup>startupPlugin</startup>
