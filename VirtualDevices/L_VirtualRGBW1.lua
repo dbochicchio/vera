@@ -2,7 +2,7 @@ module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
 
-local debugMode = true
+local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualRGBW1"
 
 local BULBTYPE = "urn:schemas-upnp-org:device:DimmableRGBLight:1"
@@ -167,8 +167,7 @@ function httpGet(url)
 		sink = ltn12.sink.table(response_body)
 	}
 
-	D('HttpGet: ', url)
-	D('HttpGet: ', (response or ''), tostring(status), tostring(table.concat(response_body or '')))
+	L('HttpGet: %1 - %2 - %3 - %4', url, (response or ''), tostring(status), tostring(table.concat(response_body or '')))
 
 	if tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))
@@ -212,6 +211,7 @@ local function restoreBrightness(dev)
 		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, dev)
 		setVar(DIMMERSID, "LoadLevelTarget", brightness, dev)
 		setVar(DIMMERSID, "LoadLevelStatus", brightness, dev)
+		setVar(DIMMERSID, "LoadLevelLast", brightness, dev)
     end
 end
 
@@ -314,18 +314,6 @@ end
 function actionSetColor(newVal, dev, sendToDevice)
     D("actionSetColor(%1,%2)", newVal, dev)
 
---    if string.match(tostring(newVal), "!") then
---        newVal = newVal:sub(2)
---        local t = decodeColor(newVal)
---        if t == newVal then
---            L({level = 2, msg = "SetColor lookup for !%1 failed"}, newVal)
---        else
---            L("SetColor lookup for !%1 returns RGB %2", newVal, t)
---            newVal = t
---        end
---    end
-
-    --local targetColor = newVal
     local status = getVarNumeric("Status", 0, dev, SWITCHSID)
     if status == 0 and sendToDevice then
         sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
@@ -416,7 +404,7 @@ function actionSetColor(newVal, dev, sendToDevice)
 end
 
 -- Toggle state
-function actionToggleState(bulb) sendDeviceCommand(COMMANDS_TOGGLE, nil, bulb) end
+function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
     L("Virtual RGBW Plugin STARTUP!")
@@ -442,31 +430,11 @@ function startPlugin(devNum)
     initVar(COMMANDS_SETWHITETEMPERATURE, "http://", devNum, MYSID)
     initVar(COMMANDS_SETRGBCOLOR, "http://", devNum, MYSID)
 
-    -- initVar( "HexColor", "808080", devNum, MYSID )
-
+	-- device categories
     luup.attr_set("category_num", "2", devNum)
     luup.attr_set("subcategory_num", "4", devNum)
 
     -- status
     luup.set_failure(0, devNum)
     return true, "Ready", _PLUGIN_NAME
-end
-
--- http://[vera]:49451/data_request?id=lr_virtualRGBW1
-function handleLuupRequest( lul_request, lul_parameters, lul_outputformat )
-    D("request(%1,%2,%3) luup.device=%4", lul_request, lul_parameters, lul_outputformat, luup.device)
-    local action = lul_parameters['action'] or lul_parameters['command'] or ""
-    local deviceNum = tonumber( lul_parameters['device'], 10 )
-    if action == "debug" then
-        debugMode = not debugMode
-        D("debug set %1 by request", debugMode)
-        return "Debug is now " .. ( debugMode and "on" or "off" ), "text/plain"
-
-    elseif action == "setcolor" then
-		local color = lul_parameters["color"]
-		actionSetColor(color, deviceNum, false)
-	end
-    else
-        error("Not implemented: " .. action)
-    end
 end

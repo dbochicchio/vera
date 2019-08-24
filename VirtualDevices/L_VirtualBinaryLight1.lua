@@ -2,7 +2,7 @@ module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
 
-local debugMode = true
+local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
 
 local SWITCHSID = "urn:upnp-org:serviceId:SwitchPower1"
@@ -258,10 +258,10 @@ function actionBrightness(newVal, dev)
 end
 
 -- Toggle state
-function actionToggleState(bulb) sendDeviceCommand(COMMANDS_TOGGLE, nil, bulb) end
+function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    luup.log("Virtual BinaryLight Plugin STARTUP!")
+    L("Virtual BinaryLight Plugin STARTUP!")
 	local deviceType = luup.attr_get('device_file')
 
     initVar("Target", "0", devNum, SWITCHSID)
