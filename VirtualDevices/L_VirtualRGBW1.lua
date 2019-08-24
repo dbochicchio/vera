@@ -167,10 +167,10 @@ function httpGet(url)
 		sink = ltn12.sink.table(response_body)
 	}
 
-	luup.log('HttpGet: ' .. url)
-	luup.log('HttpGet: ' ..(response or '') .. ' - ' .. tostring(status) .. ' - ' .. tostring(table.concat(response_body or '')))
+	D('HttpGet: ', url)
+	D('HttpGet: ', (response or ''), tostring(status), tostring(table.concat(response_body or '')))
 
-    if tonumber(status) >= 200 and tonumber(status) < 300 then
+	if tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))
 	else
 		return false
@@ -419,7 +419,7 @@ end
 function actionToggleState(bulb) sendDeviceCommand(COMMANDS_TOGGLE, nil, bulb) end
 
 function startPlugin(devNum)
-    luup.log("Virtual RGBW Plugin STARTUP!")
+    L("Virtual RGBW Plugin STARTUP!")
 
     initVar("Target", "0", devNum, SWITCHSID)
     initVar("Status", "-1", devNum, SWITCHSID)
