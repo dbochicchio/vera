@@ -40,7 +40,9 @@ In order to configure a device, you must specify its remote HTTP endpoints. Thos
 Set *SetPowerURL* variable to the corresponding HTTP call.
 
 For Tasmota: http://mydevice/cm?cmnd=Power+%s
+
 For Shelly: http://mydevice/relay/0?turn=+%s
+
 
 The %s parameter will be replace with On/Off, based on the required action.
 
@@ -48,7 +50,9 @@ The %s parameter will be replace with On/Off, based on the required action.
 Set *SetToggleURL* variable to the corresponding HTTP call.
 
 For Tasmota: http://mydevice/cm?cmnd=Power+Toggle
+
 For Shelly: not supported
+
 
 No params required.
 
