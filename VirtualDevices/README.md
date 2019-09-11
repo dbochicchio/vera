@@ -7,11 +7,17 @@ Since the code implements basic capabilities, you can use it also to add remote 
 
 Partially based with permission on [Yeelight-Vera](https://github.com/toggledbits/Yeelight-Vera) by Patrick Rigney (aka toggledbits).
 
-# Installation
-To install, simply upload this files using Vera's feature (Go to Apps, then Develop Apps, then Luup files and select upload) and then create a new device using these files.
+# Installation via MiOS App Store
+The files are available via MiOS App Store. Plug-in ID is 9281 if you want to install it manually.
+Go to your Vera web interface, then Apps, Install Apps and search for "Virtual HTTP Light Devices (Switch, Dimmer, RGB)". Click Details, then Install.
+
+# Manual Installation
+To install, simply upload this files using Vera's feature (Go to Apps, then Develop Apps, then Luup files and select upload) and then create a new device using these files. App Store is recommended.
+
+# Create a new device
 To create a new device, got to Apps, then Develops, then Create device.
-Every time you want a virtual device, just repeat this operation.
-This plug-ins support different kind of virtual devices, so choose the one you want and follow this guide.
+Every time you want a new virtual device, just repeat this operation.
+This plug-ins support different kind of virtual devices, so choose the one you want to use and follow this guide.
 
 ### Switch
 - Upnp Device Filename/Device File: D_BinaryLight1.xml
@@ -28,40 +34,46 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 ### Configuration
 All devices are auto-configured. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
 To configure a virtual device, just enter its details, then go to Advanced and select Variables tab.
-In order to configure a device, you must specify its endpoints. Those vary depending on the device capabilities.
+In order to configure a device, you must specify its remote HTTP endpoints. Those vary depending on the device capabilities, so search for the corresponding API. As with any HTTP device, a static IP is recommended. Check your device or router for instruction on how to do that.
 
 #### Switch On/Off (All)
 Set *SetPowerURL* variable to the corresponding HTTP call.
 
-IE (for Tasmota): http://mydevice/cm?cmnd=Power+%s
+For Tasmota: http://mydevice/cm?cmnd=Power+%s
+
+For Shelly: http://mydevice/relay/0?turn=+%s
+
 
 The %s parameter will be replace with On/Off, based on the required action.
 
 #### Toggle (All)
 Set *SetToggleURL* variable to the corresponding HTTP call.
 
-IE (for Tasmota): http://mydevice/cm?cmnd=Power+Toggle
+For Tasmota: http://mydevice/cm?cmnd=Power+Toggle
+
+For Shelly: not supported
+
 
 No params required.
 
 #### Dimming (Dimmers, RGB Lights)
 Set *SetBrightnessURL* variable to the corresponding HTTP call.
 
-IE (for a custom device): http://mydevice/brigthness?v=%s
+For a custom device: http://mydevice/brigthness?v=%s
 
 The %s parameter will be replace with the desired dimming (0/100).
 
 #### Color (RGB Lights)
 Set *SetRGBColorURL* variable to the corresponding HTTP call.
 
-IE (for a custom device): http://mydevice/setcolor?v=%s
+For a custom device: http://mydevice/setcolor?v=%s
 
 The %s parameter will be replace with the RBG color.
 
 #### White Temperature (RGB Lights)
 Set *SetWhiteTemperatureURL* variable to the corresponding HTTP call.
 
-IE (for a custom device): http://mydevice/setwhitemode?v=%s
+For a custom device: http://mydevice/setwhitemode?v=%s
 
 The %s parameter will be replace with temperature (from 2000 to 6500 k).
 
