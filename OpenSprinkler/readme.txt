@@ -1,1 +1,0 @@
-use D_OpenSprinkler1_UI7.xml and D_OpenSprinkler1_UI7.json to create device
