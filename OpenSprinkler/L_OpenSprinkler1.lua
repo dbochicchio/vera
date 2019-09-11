@@ -227,7 +227,7 @@ function deviceMessage(devID, message, error, timeout)
 end
 
 function clearMessage()
-    deviceMessage(masterSID, "Clearing...", TASK_SUCCESS, 0)
+    deviceMessage(masterID, "Clearing...", TASK_SUCCESS, 0)
 end
 
 --- ***** CUSTOM FUNCTIONS *****
@@ -399,8 +399,9 @@ function updateStatus()
         local jsonResponse = json.decode(response)
 
         -- STATUS
-        local state = tonumber(jsonResponse.en)
-        setVar(SWITCHSID, "Status", state and "1" or "0", dev)
+        local state = tostring(jsonResponse.en)
+		D('Controller status: %1', jsonResponse.en)
+        setVar(SWITCHSID, "Status", state == "1" and "1" or "0", dev)
 
         -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
 		local rainDelay = jsonResponse.rdst
@@ -550,15 +551,9 @@ function actionPowerInternal(state, seconds, dev)
 	local zoneIndex = getVarNumeric("ZoneID", -1, dev, MYSID)
 	local programIndex = getVarNumeric("ProgramID", -1, dev, MYSID)
 
-	local isMaster = false
-	local isProgram = false
-	local isZone = false
-
-	if (zoneIndex) > -1 then
-		isZone = true
-	elseif (programIndex> -1) then
-		isProgram = true
-	end
+	local isMaster = dev == masterID
+	local isProgram = zoneIndex > -1
+	local isZone = programIndex > -1
 
 	local cmdParams = {
 				"en=" .. tostring(state and "1" or "0"),	-- enable flag
