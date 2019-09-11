@@ -27,12 +27,12 @@ After installation, ensure to change the "IP" variable under the master device.
 Password is set, but you need to change it (see next part).
 Reload your Vera's engine and wait for you zones and programs to appear.
 
-## Variables
-# For master device
+# Variables
+## For master device
 - urn:bochicchio-com:serviceId:OpenSprinkler1 *DebugMode*: set to 1 to have verbose logging
 - urn:bochicchio-com:serviceId:OpenSprinkler1 *Password*: set your MD5 password (default is opendoor, already setup at startup)
 
-# For zones and programs
+## For zones and programs
 - urn:bochicchio-com:serviceId:OpenSprinkler1 *UpdateNameFromController*: 0 if you want to override the device name and never sync it with controller, 1 to sync it if changed (default)
 
 ### OpenLuup/ALTUI
