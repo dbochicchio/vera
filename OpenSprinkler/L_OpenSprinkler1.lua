@@ -1,6 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
+local _PLUGIN_VERSION = "0.91"
 
 local debugMode = false
 local masterID = -1
@@ -552,8 +553,8 @@ function actionPowerInternal(state, seconds, dev)
 	local programIndex = getVarNumeric("ProgramID", -1, dev, MYSID)
 
 	local isMaster = dev == masterID
-	local isProgram = zoneIndex > -1
-	local isZone = programIndex > -1
+	local isZone = zoneIndex > -1
+	local isProgram = programIndex > -1
 
 	local cmdParams = {
 				"en=" .. tostring(state and "1" or "0"),	-- enable flag
@@ -607,7 +608,7 @@ end
 function startPlugin(devNum)
     masterID = devNum
 
-    L("STARTUP!")
+    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
 	if luup.attr_get("openLuup") then
 		openLuup =  true
@@ -631,11 +632,10 @@ function startPlugin(devNum)
 
 	-- IP configuration
 	local ip = luup.attr_get("ip", devNum)
-	D('IP set to: %1', ip)
     -- run discovery
     if ip == nil or string.len(ip) == 0 then -- no IP = failure
         luup.set_failure(2, devNum)
-        return false, "Please set IP adddress", _PLUGIN_NAME
+        return false, "Please set controller IP adddress", _PLUGIN_NAME
     end
 
 	-- update
