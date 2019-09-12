@@ -1,7 +1,7 @@
 # OpenSprinkler plug-in for Vera
 Completely new and rewritten plug-in to interface an OpenSprinkler to a Vera system.
 It is able to discrovery and control:
-- Programs (just turn ON)
+- Programs (turn on/off)
 - Zones (turn on/off, length in minutes using a dimmer)
 - Rain Delay (sensor coming soon)
 
@@ -35,8 +35,14 @@ Reload your Vera's engine and wait for you zones and programs to appear.
 ## For zones and programs
 - urn:bochicchio-com:serviceId:OpenSprinkler1 *UpdateNameFromController*: 0 if you want to override the device name and never sync it with controller, 1 to sync it if changed (default)
 
-### OpenLuup/ALTUI
+# Use in code
+Master, Zones and Program devices implements standard switch action: *urn:upnp-org:serviceId:SwitchPower1 SetTarget*
+Master, Zones and Program devices implements standard HA action for toggle state: *urn:micasaverde-com:serviceId:HaDevice1 ToggleState*
+Zone devices implements standard dimmers action: *urn:upnp-org:serviceId:SwitchPower1 SetTarget*
+Master device has support to set Rain Delay via *urn:bochicchio-com:serviceId:OpenSprinkler1 SetRainDelay* passing *newRainDelay* (date and time in epoch format)
+
+# OpenLuup/ALTUI
 The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
 
-### Support
+# Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).

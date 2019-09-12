@@ -17,7 +17,7 @@
       <name>SetRainDelay</name>
       <argumentList>
         <argument>
-          <name>NewRainDelay</name>
+          <name>newRainDelay</name>
           <direction>in</direction>
           <relatedStateVariable>RainDelay</relatedStateVariable>
         </argument>
