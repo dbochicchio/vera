@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.91"
+local _PLUGIN_VERSION = "0.92"
 
 local debugMode = false
 local masterID = -1
@@ -13,19 +13,24 @@ local TASK_ERROR_PERM = -2
 local TASK_SUCCESS = 4
 local TASK_BUSY = 1
 
-local MYSID			= "urn:bochicchio-com:serviceId:OpenSprinkler1"
-local SWITCHSID		= "urn:upnp-org:serviceId:SwitchPower1"
-local DIMMERSID		= "urn:upnp-org:serviceId:Dimming1"
-local HASID			= "urn:micasaverde-com:serviceId:HaDevice1"
+-- SIDS
+local MYSID								= "urn:bochicchio-com:serviceId:OpenSprinkler1"
+local SWITCHSID							= "urn:upnp-org:serviceId:SwitchPower1"
+local DIMMERSID							= "urn:upnp-org:serviceId:Dimming1"
+local HASID								= "urn:micasaverde-com:serviceId:HaDevice1"
 
-local COMMANDS_STATUS								= "jc"
-local COMMANDS_ZONESTATUS							= "js"
-local COMMANDS_ZONENAMES							= "jn"
-local COMMANDS_PROGRAMNAMES							= "jp"
-local COMMANDS_OPTIONS								= "jo"
-local COMMANDS_SETPOWER_ZONE						= "cm"
-local COMMANDS_SETPOWER_PROGRAM						= "mp"
-local COMMANDS_CHANGEVARIABLES						= "cv"
+-- COMMANDS
+local COMMANDS_STATUS					= "jc"
+local COMMANDS_ZONESTATUS				= "js"
+local COMMANDS_ZONENAMES				= "jn"
+local COMMANDS_PROGRAMNAMES				= "jp"
+local COMMANDS_OPTIONS					= "jo"
+local COMMANDS_SETPOWER_ZONE			= "cm"
+local COMMANDS_SETPOWER_PROGRAM			= "mp"
+local COMMANDS_CHANGEVARIABLES			= "cv"
+
+local CHILDREN_ZONE						= "OS-%s"
+local CHILDREN_PROGRAM					= "OS-P-%s"
 
 TASK_HANDLE = nil
 
@@ -279,12 +284,12 @@ local function discovery()
 			for zoneID, zoneName in ipairs(jsonResponse.snames) do
 				D("Discovery: Zone %1 - Name: %2", zoneID, zoneName)
         
-				local childID = findChild(masterID, string.format('OS-%s', zoneID))
+				local childID = findChild(masterID, string.format(CHILDREN_ZONE, zoneID))
 
 				-- Set the zone name
 				if childID == 0 then
 					D('Device to be added')
-					luup.chdev.append(masterID, child_devices, string.format('OS-%s', zoneID), zoneName, "", "D_DimmableLight1.xml", "", "", false)
+					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, "", "D_DimmableLight1.xml", "", "", false)
 					syncChildren = true
 				else
 					D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
@@ -328,10 +333,10 @@ local function discovery()
 	success, response = sendDeviceCommand(COMMANDS_PROGRAMNAMES)
     if success then
         local jsonResponse = json.decode(response)
-		local programs = jsonResponse.nprogs
+		local programs = tonumber(jsonResponse.nprogs)
 
 		if programs>0 then
-			-- get zones
+			-- get programs
 			for i = 1, programs do
 				local programID = i-1
 
@@ -342,12 +347,12 @@ local function discovery()
 
 				D("Discovery: Program %1 - Name: %2 - %3", programID, programName, jsonResponse.pd[i])
         
-				local childID = findChild(masterID, string.format('OS-P-%s', programID))
+				local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programID))
 
 				-- Set the zone name
 				if childID == 0 then
 					D('Device to be added')
-					luup.chdev.append(masterID, child_devices, string.format('OS-P-%s', programID), programName, "", "D_BinaryLight1.xml", "", "", false)
+					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", "", false)
 
 					syncChildren = true
 				else
@@ -360,9 +365,20 @@ local function discovery()
 						setVar(MYSID, "UpdateNameFromController", 1, childID)
 					end
 					
-					setVar(MYSID, "ProgramID", (programID), childID)
+					setVar(MYSID, "ProgramID", programID, childID)
 
-					-- HINT: save program data?
+					-- save program data, to stop stations when stopping the program
+					local programData = jsonResponse.pd[i][counter-1] -- last-1 element in the array
+					if programData ~= nil then
+						D("Setting zone data: %1 - %2 - %3", childID, programID, programData)
+						local programData_Zones = ""
+						for i=1,#programData do
+							programData_Zones = programData_Zones .. tostring(programData[i]) .. ","
+						end
+						setVar(MYSID, "Zones", programData_Zones, childID)
+					else
+						D("Setting zone data FAILED: %1 - %2", childID, programID)
+					end
 
 					if luup.attr_get("category_num", childID) == nil then
 						luup.attr_set("category_num", "3", childID)			-- Switch
@@ -423,17 +439,17 @@ function updateStatus()
 		local programs = jsonResponse.ps
 
 		if programs ~= nil and #programs > 0 then
-			for i = 1, #programs do
-				-- Locate the device which represents the irrigation zone
-				local childID = findChild(masterID, string.format('OS-P-%s', i-1))
+			for i = 2, #programs do -- ignore the program
+				local programIndex = i-2
+				local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programIndex))
 				if childID>0 then
 					D('Program Status for %1: %2', childID, programs[i][1])
-	                local state = tonumber(programs[i][1] or "0")
+	                local state = tonumber(programs[i][1] or "0") >= 1 and 1 or 0
 
 					-- Check to see if program status changed
 					local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
-					if tonumber(currentState) ~= tonumber(state) or debugMode then
-						D("Update Program: %1 - Status: %2", i, state)
+					if currentState ~= state then
+						D("Update Program: %1 - Status: %2", iprogramIndex, state)
 
 						initVar("Target", "0", childID, SWITCHSID)
 						initVar("Configured", "1", childID, HASID)
@@ -441,7 +457,7 @@ function updateStatus()
 
 						setVerboseDisplay("Program: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
 					else
-						D("Update Program Skipped for #%1: %2 - Status: %3 - %4", childID, i, state, currentState)
+						D("Update Program Skipped for #%1: %2 - Status: %3 - %4", childID, programIndex, state, currentState)
 					end
 
 					setLastUpdate(childID)
@@ -466,14 +482,14 @@ function updateStatus()
         
         for i = 1, stations do
             -- Locate the device which represents the irrigation zone
-            local childID = findChild(masterID, string.format('OS-%s', i))
+            local childID = findChild(masterID, string.format(CHILDREN_ZONE, i))
 
             if childID>0 then
                 local state = tonumber(jsonResponse.sn[i] or "0")
 
                 -- Check to see if zone status changed
                 local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
-                if tonumber(currentState) ~= tonumber(state) or debugMode then
+                if currentState ~= state then
                     D("Update Zone: %1 - Status: %2", i, state)
 
 					initVar("Target", "0", childID, SWITCHSID)
@@ -573,7 +589,10 @@ function actionPowerInternal(state, seconds, dev)
 		cmd = COMMANDS_SETPOWER_PROGRAM
 		if not state then
 			sendCommand = false
-			luup.device_message(dev, 3, "Cannot disable program - please stop all stations", 20, _PLUGIN_NAME)
+
+			actionPowerStopStation(dev)
+
+			setVar(SWITCHSID, "Status", "0", dev) -- stop it in the UI
 		end
 	end
 
@@ -589,6 +608,23 @@ function actionPowerInternal(state, seconds, dev)
 		end
 	else
 		D("actionPower: Command skipped")
+	end
+end
+
+function actionPowerStopStation(dev)
+	local v = getVar("Zones", ",", dev, MYSID)
+	D("actionPowerStopStation: %1 - %2", dev, v)
+	local zones = split(v, ",")
+	if zones ~= nil and #zones>0 then
+		for i=1,#zones-1 do -- ignore the last one
+			if zones[i] ~= nil and tonumber(zones[i])>0 then -- if value >0, then the zones is inside this program
+				local childID = findChild(masterID, string.format(CHILDREN_ZONE, i))
+				if childID>0 then
+					D('actionPowerStopStation: stop zone %1 - device %2', i, childID)
+					actionPowerInternal(false, 0, childID)
+				end
+			end
+		end
 	end
 end
 
