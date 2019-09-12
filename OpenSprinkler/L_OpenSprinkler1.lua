@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.92b"
+local _PLUGIN_VERSION = "0.92c"
 
 local debugMode = false
 local masterID = -1
@@ -416,22 +416,24 @@ function updateStatus()
         local jsonResponse = json.decode(response)
 
         -- STATUS
-        local state = tostring(jsonResponse.en)
-		D('Controller status: %1', jsonResponse.en)
-        setVar(SWITCHSID, "Status", state == "1" and "1" or "0", dev)
+        local state = tonumber(jsonResponse.en)
+		D('Controller status: %1', state)
+        setVar(SWITCHSID, "Status", state == 1 and "1" or "0", dev)
 
         -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
-		local rainDelay = jsonResponse.rdst
+		local rainDelay = tonumber(jsonResponse.rdst)
         setVar(MYSID, "RainDelay", rainDelay, masterID)
-		local rainDelayDate = os.date("%H:%M:%S %a %d %b %Y", jsonResponse.rdst)
 
-		-- TODO: create a virtual sensor for rain delay?
+		-- TODO: FIX! handle local time conversion
+		-- TODO: use local format for time/date format
+		local rainDelayDate = os.date("%H:%M:%S (%a %d %b %Y)", jsonResponse.rdst)
 
-		setVerboseDisplay(("Controller: " .. (state and "ready" or "disabled")),
-						("RainDelay: " .. (rainDelay and "disabled" or ("enabled until " .. rainDelayDate))),
+		setVerboseDisplay(("Controller: " .. (state == 1 and "ready" or "disabled")),
+						("RainDelay: " .. (rainDelay == 0 and "disabled" or ("enabled until " .. rainDelayDate))),
 						masterID)
 
-		D('Update status - Status: %1 - RainDelay: %2 - %3', jsonResponse.en, rainDelay, rainDelayDate)
+		-- TODO: create a virtual sensor for rain delay?
+		D('Update status - Status: %1 - RainDelay: %2 - %3', state, rainDelay, rainDelayDate)
 
 		setLastUpdate(masterID)
 
@@ -449,13 +451,13 @@ function updateStatus()
 					-- Check to see if program status changed
 					local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
 					if currentState ~= state then
-						D("Update Program: %1 - Status: %2", iprogramIndex, state)
-
 						initVar("Target", "0", childID, SWITCHSID)
-						initVar("Configured", "1", childID, HASID)
+						setVar(HASID, "Configured", "1", childID)
 						setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
 						setVerboseDisplay("Program: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
+
+						D("Update Program: %1 - Status: %2", iprogramIndex, state)
 					else
 						D("Update Program Skipped for #%1: %2 - Status: %3 - %4", childID, programIndex, state, currentState)
 					end
@@ -490,15 +492,15 @@ function updateStatus()
                 -- Check to see if zone status changed
                 local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
                 if currentState ~= state then
-                    D("Update Zone: %1 - Status: %2", i, state)
-
 					initVar("Target", "0", childID, SWITCHSID)
-					initVar("Configured", "1", childID, HASID)
+					setVar(HASID, "Configured", "1", childID)
 
                     --initVar(SWITCHSID, "Target", (state == 1) and "1" or "0", childID)
                     setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
 					setVerboseDisplay("Zone: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
+
+					D("Update Zone: %1 - Status: %2", i, state)
                 else
                     D("Update Zone Skipped for #%1: %2 - Status: %3 - %4", childID, i, state, currentState)
 				end
@@ -646,7 +648,7 @@ function startPlugin(devNum)
 
     L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
-	if luup.attr_get("openLuup") then
+	if luup.openLuup ~= nil then
 		openLuup =  true
 		L('Running on OpenLuup: %1', openLuup)
 	end
