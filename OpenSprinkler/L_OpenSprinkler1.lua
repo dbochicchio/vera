@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.92"
+local _PLUGIN_VERSION = "0.92b"
 
 local debugMode = false
 local masterID = -1
@@ -422,7 +422,7 @@ function updateStatus()
 
         -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
 		local rainDelay = jsonResponse.rdst
-        setVar(MYSID, "RainDelay", rainDelay)
+        setVar(MYSID, "RainDelay", rainDelay, masterID)
 		local rainDelayDate = os.date("%H:%M:%S %a %d %b %Y", jsonResponse.rdst)
 
 		-- TODO: create a virtual sensor for rain delay?
