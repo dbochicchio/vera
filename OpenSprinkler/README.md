@@ -20,12 +20,18 @@ To install, simply upload this files using Vera's feature (Go to Apps, then Deve
 To create a new device, got to Apps, then Develops, then Create device.
 Every time you want to map a new controller, just repeat this operation.
 
-- Upnp Device Filename/Device File: D_OpenSprinkler1.xml
-- Upnp Implementation Filename/Implementation file: I_OpenSprinkler1.xml
+- Device Type: *urn:schemas-upnp-org:device:BinaryLight:1*
+- Upnp Device Filename/Device File: *D_OpenSprinkler1.xml*
+- Upnp Implementation Filename/Implementation file: *I_OpenSprinkler1.xml*
+- IP address: the OpenSprinkler Controller internal IP address (host name not supported)
+- Parent Device: none
 
-After installation, ensure to change the "IP" variable under the master device.
-Password is set, but you need to change it (see next part).
+After installation, ensure to change the "IP" variable under the master device (if not specified before).
+Password is set to "opendoor" (in MD5 format), but you need to change it (see next part).
 Reload your Vera's engine and wait for you zones and programs to appear.
+
+#Password
+OpenSprinkler use MD5 when passing password. Ensure to use a tool (such as http://www.md5.cz/) and save the generated password in the corresponding variable.
 
 # Variables
 ## For master device

@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.92c"
+local _PLUGIN_VERSION = "0.92.4"
 
 local debugMode = false
 local masterID = -1
@@ -176,7 +176,7 @@ function httpGet(url)
     local requestor = url:lower():find("^https:") and https or http
     response, status, headers = requestor.request{
         method = "GET",
-        url = url,
+        url = url + '&rnd=' + tostring(math.random()),
         headers = {
             ["Content-Type"] = "application/json; charset=utf-8",
             ["Connection"] = "keep-alive"
@@ -196,6 +196,7 @@ end
 
 local function setLastUpdate(devID)
     luup.variable_set(HASID, "LastUpdate", os.time(), devID)
+	luup.set_failure(0, devID)
 end
 
 local function setVerboseDisplay(line1, line2, devID)
@@ -417,8 +418,8 @@ function updateStatus()
 
         -- STATUS
         local state = tonumber(jsonResponse.en)
-		D('Controller status: %1', state)
-        setVar(SWITCHSID, "Status", state == 1 and "1" or "0", dev)
+		D('Controller status: %1, %2', state, state == 1 and "1" or "0")
+        setVar(SWITCHSID, "Status", state == 1 and "1" or "0", masterID)
 
         -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
 		local rainDelay = tonumber(jsonResponse.rdst)
@@ -469,7 +470,7 @@ function updateStatus()
 			D('No programs defined, update skipped')
 		end
     else
-        deviceMessage(masterID, 'Error while updating from your controller.', true)
+        --deviceMessage(masterID, 'Error while updating from your controller.', true)
 		L('Update status error: %1', response)
     end
 
@@ -511,7 +512,7 @@ function updateStatus()
             end
         end
     else
-        deviceMessage(masterID, 'Error while updating your controller.', true)
+        --deviceMessage(masterID, 'Error while updating your controller.', true)
 		L('Zone update error: %1', response)
     end
 
@@ -675,6 +676,8 @@ function startPlugin(devNum)
         luup.set_failure(2, devNum)
         return false, "Please set controller IP adddress", _PLUGIN_NAME
     end
+
+	math.randomseed(os.clock()*100000000000)
 
 	-- update
 	updateStatus()
