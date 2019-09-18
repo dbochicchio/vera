@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.92.4"
+local _PLUGIN_VERSION = "0.93"
 
 local debugMode = false
 local masterID = -1
@@ -174,9 +174,11 @@ function httpGet(url)
 
     -- Handler for HTTP or HTTPS?
     local requestor = url:lower():find("^https:") and https or http
+	requestor.timeout = 5
+
     response, status, headers = requestor.request{
         method = "GET",
-        url = url + '&rnd=' + tostring(math.random()),
+        url = url .. '&rnd=' .. tostring(math.random()),
         headers = {
             ["Content-Type"] = "application/json; charset=utf-8",
             ["Connection"] = "keep-alive"
@@ -184,7 +186,6 @@ function httpGet(url)
         sink = ltn12.sink.table(response_body)
     }
 
-	requestor.timeout = 5 -- seconds
     L('HttpGet: %1 - %2 - %3 - %4', url, (response or ''), (status or -1), tostring(table.concat(response_body or '')))
 
     if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
@@ -290,7 +291,12 @@ local function discovery()
 				-- Set the zone name
 				if childID == 0 then
 					D('Device to be added')
-					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, "", "D_DimmableLight1.xml", "", "", false)
+					local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+											MYSID, "ZoneID", (zoneID-1),
+											"", "category_num", 2,
+											"", "subcategory_num", 7
+											)
+					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, "", "D_DimmableLight1.xml", "", initVar, false)
 					syncChildren = true
 				else
 					D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
@@ -479,7 +485,7 @@ function updateStatus()
     if status then
         local jsonResponse = json.decode(response)
 
-        local stations = tonumber(jsonResponse.nstations)
+        local stations = tonumber(jsonResponse.nstations) or 0
 
         setVar(MYSID, "MaxZones", stations)
         
