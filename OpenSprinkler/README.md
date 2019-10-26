@@ -35,11 +35,14 @@ OpenSprinkler use MD5 when passing password. Ensure to use a tool (such as http:
 
 # Variables
 ## For master device
-- urn:bochicchio-com:serviceId:OpenSprinkler1 *DebugMode*: set to 1 to have verbose logging
-- urn:bochicchio-com:serviceId:OpenSprinkler1 *Password*: set your MD5 password (default is opendoor, already setup at startup)
+- *urn:bochicchio-com:serviceId:OpenSprinkler1* / *DebugMode*: set to 1 to have verbose logging
+- *urn:bochicchio-com:serviceId:OpenSprinkler1* / *Password*: set your MD5 password (default is *opendoor*, already setup at startup)
 
 ## For zones and programs
-- urn:bochicchio-com:serviceId:OpenSprinkler1 *UpdateNameFromController*: 0 if you want to override the device name and never sync it with controller, 1 to sync it if changed (default)
+- *urn:bochicchio-com:serviceId:OpenSprinkler1* / *UpdateNameFromController*: 0 if you want to override the device name and never sync it with controller, 1 to sync it if changed (default)
+
+## For Water Level
+- *urn:micasaverde-com:serviceId:HumiditySensor1* / *CurrentLevel*: if you want to get the water level from the device
 
 # Use in code
 Master, Zones and Program devices implements standard switch action: *urn:upnp-org:serviceId:SwitchPower1 SetTarget*

@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.93"
+local _PLUGIN_VERSION = "0.94"
 
 local debugMode = false
 local masterID = -1
@@ -18,6 +18,7 @@ local MYSID								= "urn:bochicchio-com:serviceId:OpenSprinkler1"
 local SWITCHSID							= "urn:upnp-org:serviceId:SwitchPower1"
 local DIMMERSID							= "urn:upnp-org:serviceId:Dimming1"
 local HASID								= "urn:micasaverde-com:serviceId:HaDevice1"
+local HUMIDITYSID						= "urn:micasaverde-com:serviceId:HumiditySensor1"
 
 -- COMMANDS
 local COMMANDS_STATUS					= "jc"
@@ -31,6 +32,7 @@ local COMMANDS_CHANGEVARIABLES			= "cv"
 
 local CHILDREN_ZONE						= "OS-%s"
 local CHILDREN_PROGRAM					= "OS-P-%s"
+local CHILDREN_WATERLEVEL				= "OS-WL-%s"
 
 TASK_HANDLE = nil
 
@@ -290,6 +292,7 @@ local function discovery()
 
 				-- Set the zone name
 				if childID == 0 then
+					-- TODO: if master valve, create as switch, not dimmer
 					D('Device to be added')
 					local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 											MYSID, "ZoneID", (zoneID-1),
@@ -356,10 +359,15 @@ local function discovery()
         
 				local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programID))
 
-				-- Set the zone name
+				-- Set the program name
 				if childID == 0 then
+					local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+											MYSID, "ZoneID", (programID-1),
+											"", "category_num", 2,
+											"", "subcategory_num", 7
+											)
 					D('Device to be added')
-					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", "", false)
+					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", initVar, false)
 
 					syncChildren = true
 				else
@@ -407,6 +415,27 @@ local function discovery()
         deviceMessage(masterID, 'Error while discovering your controller.', true)
 		L('Discovery error: %1', response)
     end
+
+	-- water level
+	local waterLevelChildID = findChild(masterID, string.format(CHILDREN_WATERLEVEL, 0))
+	-- Set the program name
+	if waterLevelChildID == 0 then
+		local initVar = string.format("%s,%s=%s",
+								"", "category_num", 16)
+		D('Device to be added')
+		luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", "", "D_HumiditySensor1.xml", "", initVar, false)
+
+		syncChildren = true
+	else
+		if luup.attr_get("category_num", waterLevelChildID) == nil then
+			luup.attr_set("category_num", "16", waterLevelChildID)			-- Humidity sensor
+
+			setVar(HASID, "Configured", 1, waterLevelChildID)
+		end
+
+		-- watch to turn on the valve from the master
+		setLastUpdate(waterLevelChildID)
+	end
 
 	if syncChildren then
 		luup.chdev.sync(masterID, child_devices)
@@ -487,7 +516,7 @@ function updateStatus()
 
         local stations = tonumber(jsonResponse.nstations) or 0
 
-        setVar(MYSID, "MaxZones", stations)
+        setVar(MYSID, "MaxZones", stations, masterID)
         
         for i = 1, stations do
             -- Locate the device which represents the irrigation zone
@@ -523,11 +552,32 @@ function updateStatus()
     end
 
 	-- OPTIONS status
-	-- TODO: call COMMANDS_OPTIONS and get wl (water level in percentage)
+	-- get master stations, wl (water level in percentage)
+	status, response = sendDeviceCommand(COMMANDS_OPTIONS)
+    if status then
+        local jsonResponse = json.decode(response)
+		local masterStations = string.format("%s,%s", jsonResponse.mas, jsonResponse.mas2)
+		local waterLevel = tonumber(jsonResponse.wl) or 0
+
+		setVar(MYSID, "MasterStations", masterStations, masterID)
+
+		-- water level inside its own child device
+		local waterLevelDevice = findChild(masterID, string.format(CHILDREN_WATERLEVEL, 0))
+		D('Water level: %1', waterLevel)
+		if waterLevelDevice>0 then
+			setVar(HUMIDITYSID, "CurrentLevel", waterLevel, waterLevelDevice)
+			D('Setting Water level: %1 to dev#: %2', waterLevel, waterLevelDevice)
+		end
+    else
+        --deviceMessage(masterID, 'Error while updating your controller.', true)
+		L('Options update error: %1', response)
+    end
 
     -- schedule again
     local refresh = getVarNumeric("Refresh", 10, devNum, HASID)
     luup.call_timer("updateStatus", 1, tostring(refresh) .. "s", "")
+
+	D('Next refresh in ' .. tostring(refresh) .. ' secs')
 end
 
 function actionPower(state, dev)
@@ -538,7 +588,7 @@ function actionPower(state, dev)
         state = state ~= 0
     end
 
---	 -- support for reverse
+--	 -- support for reverse?
 --	local reverse = getVarNumeric("ReverseOnOff", 0, devNum, HASID) == 1
 --	if reverse and state then state = false end
 --	if reverse and not state then state = true end
@@ -592,8 +642,8 @@ function actionPowerInternal(state, seconds, dev)
     if isMaster then
 		cmd = COMMANDS_CHANGEVARIABLES
 		cmdParams = {
-						"en=" .. tostring(state and "1" or "0"),	-- enable flag
-					}
+				"en=" .. tostring(state and "1" or "0"),	-- enable flag
+				}
 	elseif isProgram then
 		cmd = COMMANDS_SETPOWER_PROGRAM
 		if not state then
@@ -655,11 +705,15 @@ function startPlugin(devNum)
 
     L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
-	if luup.openLuup ~= nil then
-		openLuup =  true
-		L('Running on OpenLuup: %1', openLuup)
+	-- decect OpenLuup
+	for k,v in pairs(luup.devices) do
+		if v.device_type == "openLuup" then
+			openLuup = true
+			D('Running on OpenLuup: %1', openLuup)
+		end
 	end
 
+	-- init
     initVar("Target", "0", devNum, SWITCHSID)
     initVar("Status", "-1", devNum, SWITCHSID)
 
