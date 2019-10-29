@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.94"
+local _PLUGIN_VERSION = "0.95"
 
 local debugMode = false
 local masterID = -1
@@ -313,7 +313,7 @@ local function discovery()
 
 					setVar(MYSID, "ZoneID", (zoneID-1), childID)
 
-					if luup.attr_get("category_num", childID) == nil then
+					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID)) == "0" then
 						luup.attr_set("category_num", "2", childID)			-- Dimmer
 						luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 						setVar(HASID, "Configured", 1, childID)
@@ -395,7 +395,7 @@ local function discovery()
 						D("Setting zone data FAILED: %1 - %2", childID, programID)
 					end
 
-					if luup.attr_get("category_num", childID) == nil then
+					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) == "0") then
 						luup.attr_set("category_num", "3", childID)			-- Switch
 						luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 
@@ -574,7 +574,7 @@ function updateStatus()
     end
 
     -- schedule again
-    local refresh = getVarNumeric("Refresh", 10, devNum, HASID)
+    local refresh = getVarNumeric("Refresh", 10, masterID, HASID)
     luup.call_timer("updateStatus", 1, tostring(refresh) .. "s", "")
 
 	D('Next refresh in ' .. tostring(refresh) .. ' secs')
@@ -724,7 +724,7 @@ function startPlugin(devNum)
     initVar("MaxZones", "32", devNum, MYSID)
 
 	-- categories
-	if luup.attr_get("category_num", devNum) == nil then
+	if luup.attr_get("category_num", devNum) == nil or tostring(luup.attr_get("subcategory_num", devNum) == "0") then
 	    luup.attr_set("category_num", "3", devNum)			-- Switch
 	    luup.attr_set("subcategory_num", "7", devNum)		-- Water Valve
 	end
@@ -737,7 +737,7 @@ function startPlugin(devNum)
         return false, "Please set controller IP adddress", _PLUGIN_NAME
     end
 
-	math.randomseed(os.clock()*100000000000)
+	math.randomseed(tonumber(tostring(os.time()):reverse():sub(1,6)))
 
 	-- update
 	updateStatus()
