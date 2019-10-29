@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.95"
+local _PLUGIN_VERSION = "0.95.1"
 
 local debugMode = false
 local masterID = -1
@@ -574,7 +574,7 @@ function updateStatus()
     end
 
     -- schedule again
-    local refresh = getVarNumeric("Refresh", 10, masterID, HASID)
+    local refresh = getVarNumeric("Refresh", 10, masterID, MYSID)
     luup.call_timer("updateStatus", 1, tostring(refresh) .. "s", "")
 
 	D('Next refresh in ' .. tostring(refresh) .. ' secs')
@@ -589,7 +589,7 @@ function actionPower(state, dev)
     end
 
 --	 -- support for reverse?
---	local reverse = getVarNumeric("ReverseOnOff", 0, devNum, HASID) == 1
+--	local reverse = getVarNumeric("ReverseOnOff", 0, dev, HASID) == 1
 --	if reverse and state then state = false end
 --	if reverse and not state then state = true end
 
@@ -728,6 +728,8 @@ function startPlugin(devNum)
 	    luup.attr_set("category_num", "3", devNum)			-- Switch
 	    luup.attr_set("subcategory_num", "7", devNum)		-- Water Valve
 	end
+
+	luup.attr_set("device_file", "D_OpenSprinkler1.xml", devNum) -- fix it at startup
 
 	-- IP configuration
 	local ip = luup.attr_get("ip", devNum)
