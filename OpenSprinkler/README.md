@@ -5,6 +5,8 @@ It is able to discrovery and control:
 - Zones (turn on/off, length in minutes using a dimmer)
 - Rain Delay (sensor coming soon)
 
+![File](file.png)
+
 All the devices are implemented as standard Vera device types.
 
 **This is beta software!**
