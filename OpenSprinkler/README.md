@@ -53,7 +53,7 @@ Zone devices implements standard dimmers action: *urn:upnp-org:serviceId:SwitchP
 Master device has support to set Rain Delay via *urn:bochicchio-com:serviceId:OpenSprinkler1 SetRainDelay* passing *newRainDelay* (date and time in epoch format)
 
 # OpenLuup/ALTUI
-The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
+The devices are working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
 # Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).

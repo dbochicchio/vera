@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+	<specVersion>
+		<major>1</major>
+		<minor>0</minor>
+	</specVersion>
+	<device>
+		<deviceType>urn:dlna-org:device:DLNAMediaController:1</deviceType>
+		<staticJson>D_ComboDevice1.json</staticJson>
+		<Category_Num>15</Category_Num>
+		<friendlyName>Alexa</friendlyName>
+		<manufacturer>Amazon</manufacturer>
+		<manufacturerURL>https://github.com/dbochicchio/vera/VeraAlexa</manufacturerURL>
+		<modelDescription>Sprinkler Controller</modelDescription>
+		<modelName>Amazon</modelName>
+		<modelNumber>1.0</modelNumber>
+		<protocol>cr</protocol>
+		<handleChildren>1</handleChildren>
+		<serviceList>
+			<service>
+				<serviceType>urn:dlna-org:service:DLNAMediaController:1</serviceType>
+				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
+				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
+			</service>
+			<service>
+				<serviceType>urn:micasaverde-com:service:Volume:1</serviceType>
+				<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>
+				<SCPDURL>S_Volume1.xml</SCPDURL>
+			</service>
+		</serviceList>
+		<implementationList>
+			<implementationFile>I_VeraAlexa1.xml</implementationFile>
+		</implementationList>
+	</device>
+</root>
+
