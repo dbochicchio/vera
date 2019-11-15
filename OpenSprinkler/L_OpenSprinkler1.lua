@@ -188,7 +188,7 @@ function httpGet(url)
         sink = ltn12.sink.table(response_body)
     }
 
-    L('HttpGet: %1 - %2 - %3 - %4', url, (response or ''), (status or -1), tostring(table.concat(response_body or '')))
+    L("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), (status or -1), tostring(table.concat(response_body or "")))
 
     if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
         return true, tostring(table.concat(response_body or ''))
@@ -221,10 +221,10 @@ end
 function deviceMessage(devID, message, error, timeout)
 	local status = error and 2 or 4
 	timeout = timeout or 0
-	D('deviceMessage(%1,%2,%3,%4)', devID, message, error, timeout)
+	D("deviceMessage(%1,%2,%3,%4)", devID, message, error, timeout)
 
 	if openLuup then
-		D('OpenLuup detected')
+		D("OpenLuup detected")
 		taskHandle = luup.task(message, status, _PLUGIN_NAME, taskHandle)
 		if timeout ~= 0 then
 			luup.call_delay("clearMessage", timeout, "", false)
@@ -262,7 +262,7 @@ local function sendDeviceCommand(cmd, params)
 
     local password = getVar("Password", "", masterID, MYSID)
 	local ip = luup.attr_get("ip", masterID) or ""
-	D('OS Controller IP: %1', ip)
+	D("OS Controller IP: %1", ip)
 
     local cmdUrl = string.format('http://%s/%s?%s&pw=%s', ip, cmd, pstr, password)
 	D("sendDeviceCommand - url: %1", cmdUrl)
@@ -272,13 +272,13 @@ local function sendDeviceCommand(cmd, params)
 end
 
 local function discovery()
-	D('Discovery in progress...')
+	D("Discovery in progress...")
 
     local child_devices = luup.chdev.start(masterID)
 	local syncChildren = false
 
 	-- zones
-	D('Discovery 1/2 in progress...')
+	D("Discovery 1/2 in progress...")
     local success, response = sendDeviceCommand(COMMANDS_ZONENAMES)
     if success then
         local jsonResponse = json.decode(response)
@@ -293,7 +293,7 @@ local function discovery()
 				-- Set the zone name
 				if childID == 0 then
 					-- TODO: if master valve, create as switch, not dimmer
-					D('Device to be added')
+					D("Device to be added")
 					local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 											MYSID, "ZoneID", (zoneID-1),
 											"", "category_num", 2,
@@ -329,17 +329,17 @@ local function discovery()
 				end
 			end
 		else
-			L('Discovery 1/2: nil response from controller')
+			L("Discovery 1/2: nil response from controller")
 		end
 
-		D('Discovery 1/2 completed...')
+		D("Discovery 1/2 completed...")
     else
 		deviceMessage(masterID, 'Error while discovering your controller.', true)
-		L('Discovery error: %1', response)
+		L("Discovery error: %1", response)
     end
 
 	-- programs
-	D('Discovery 2/2 in progress...')
+	D("Discovery 2/2 in progress...")
 	success, response = sendDeviceCommand(COMMANDS_PROGRAMNAMES)
     if success then
         local jsonResponse = json.decode(response)
@@ -366,7 +366,7 @@ local function discovery()
 											"", "category_num", 2,
 											"", "subcategory_num", 7
 											)
-					D('Device to be added')
+					D("Device to be added")
 					luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", initVar, false)
 
 					syncChildren = true
@@ -407,13 +407,13 @@ local function discovery()
 				end
 			end
 		else
-			L('Discovery 2/2: no programs from controller')
+			L("Discovery 2/2: no programs from controller")
 		end
 
-		D('Discovery 2/2 completed...')
+		D("Discovery 2/2 completed...")
     else
-        deviceMessage(masterID, 'Error while discovering your controller.', true)
-		L('Discovery error: %1', response)
+        deviceMessage(masterID, "Error while discovering your controller.", true)
+		L("Discovery error: %1", response)
     end
 
 	-- water level
@@ -422,7 +422,7 @@ local function discovery()
 	if waterLevelChildID == 0 then
 		local initVar = string.format("%s,%s=%s",
 								"", "category_num", 16)
-		D('Device to be added')
+		D("Device to be added")
 		luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", "", "D_HumiditySensor1.xml", "", initVar, false)
 
 		syncChildren = true
@@ -441,11 +441,11 @@ local function discovery()
 		luup.chdev.sync(masterID, child_devices)
 	end
 
-	D('Discovery completed...')
+	D("Discovery completed...")
 end
 
 function updateStatus()
-	D('Update status in progress...')
+	D("Update status in progress...")
     -- MAIN STATUS
     local status, response = sendDeviceCommand(COMMANDS_STATUS)
     if status then
@@ -453,7 +453,7 @@ function updateStatus()
 
         -- STATUS
         local state = tonumber(jsonResponse.en)
-		D('Controller status: %1, %2', state, state == 1 and "1" or "0")
+		D("Controller status: %1, %2", state, state == 1 and "1" or "0")
         setVar(SWITCHSID, "Status", state == 1 and "1" or "0", masterID)
 
         -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
@@ -469,7 +469,7 @@ function updateStatus()
 						masterID)
 
 		-- TODO: create a virtual sensor for rain delay?
-		D('Update status - Status: %1 - RainDelay: %2 - %3', state, rainDelay, rainDelayDate)
+		D("Update status - Status: %1 - RainDelay: %2 - %3", state, rainDelay, rainDelayDate)
 
 		setLastUpdate(masterID)
 
@@ -481,7 +481,7 @@ function updateStatus()
 				local programIndex = i-2
 				local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programIndex))
 				if childID>0 then
-					D('Program Status for %1: %2', childID, programs[i][1])
+					D("Program Status for %1: %2", childID, programs[i][1])
 	                local state = tonumber(programs[i][1] or "0") >= 1 and 1 or 0
 
 					-- Check to see if program status changed
@@ -502,11 +502,11 @@ function updateStatus()
 				end
 			end
 		else
-			D('No programs defined, update skipped')
+			D("No programs defined, update skipped")
 		end
     else
         --deviceMessage(masterID, 'Error while updating from your controller.', true)
-		L('Update status error: %1', response)
+		L("Update status error: %1", response)
     end
 
     -- ZONE STATUS
@@ -543,12 +543,12 @@ function updateStatus()
 
 				setLastUpdate(childID)
             else
-				D('Zone not found: %1', i)
+				D("Zone not found: %1", i)
             end
         end
     else
         --deviceMessage(masterID, 'Error while updating your controller.', true)
-		L('Zone update error: %1', response)
+		L("Zone update error: %1", response)
     end
 
 	-- OPTIONS status
@@ -563,21 +563,21 @@ function updateStatus()
 
 		-- water level inside its own child device
 		local waterLevelDevice = findChild(masterID, string.format(CHILDREN_WATERLEVEL, 0))
-		D('Water level: %1', waterLevel)
+		D("Water level: %1", waterLevel)
 		if waterLevelDevice>0 then
 			setVar(HUMIDITYSID, "CurrentLevel", waterLevel, waterLevelDevice)
-			D('Setting Water level: %1 to dev#: %2', waterLevel, waterLevelDevice)
+			D("Setting Water level: %1 to dev#: %2", waterLevel, waterLevelDevice)
 		end
     else
         --deviceMessage(masterID, 'Error while updating your controller.', true)
-		L('Options update error: %1', response)
+		L("Options update error: %1", response)
     end
 
     -- schedule again
     local refresh = getVarNumeric("Refresh", 10, masterID, MYSID)
     luup.call_timer("updateStatus", 1, tostring(refresh) .. "s", "")
 
-	D('Next refresh in ' .. tostring(refresh) .. ' secs')
+	D("Next refresh in " .. tostring(refresh) .. " secs")
 end
 
 function actionPower(state, dev)
@@ -655,7 +655,7 @@ function actionPowerInternal(state, seconds, dev)
 		end
 	end
 
-	D('actionPower: %1 - %2', dev, zoneIndex or programIndex or "-1")
+	D("actionPower: %1 - %2", dev, zoneIndex or programIndex or "-1")
 	if sendCommand then
 		local result, response = sendDeviceCommand(cmd, cmdParams)
 
@@ -663,7 +663,7 @@ function actionPowerInternal(state, seconds, dev)
 			setVar(SWITCHSID, "Status", state and "1" or "0", dev)
 		else
 			deviceMessage(dev, 'Unable to send command to controller', true)
-			L('Switch power error: %1 - %2 - %3', dev, state, response)
+			L("Switch power error: %1 - %2 - %3", dev, state, response)
 		end
 	else
 		D("actionPower: Command skipped")
@@ -679,7 +679,7 @@ function actionPowerStopStation(dev)
 			if zones[i] ~= nil and tonumber(zones[i])>0 then -- if value >0, then the zones is inside this program
 				local childID = findChild(masterID, string.format(CHILDREN_ZONE, i))
 				if childID>0 then
-					D('actionPowerStopStation: stop zone %1 - device %2', i, childID)
+					D("actionPowerStopStation: stop zone %1 - device %2", i, childID)
 					actionPowerInternal(false, 0, childID)
 				end
 			end
@@ -709,7 +709,7 @@ function startPlugin(devNum)
 	for k,v in pairs(luup.devices) do
 		if v.device_type == "openLuup" then
 			openLuup = true
-			D('Running on OpenLuup: %1', openLuup)
+			D("Running on OpenLuup: %1", openLuup)
 		end
 	end
 

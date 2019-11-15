@@ -167,7 +167,7 @@ function httpGet(url)
 		sink = ltn12.sink.table(response_body)
 	}
 
-	L('HttpGet: %1 - %2 - %3 - %4', url, (response or ''), tostring(status), tostring(table.concat(response_body or '')))
+	L("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
 	if tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))

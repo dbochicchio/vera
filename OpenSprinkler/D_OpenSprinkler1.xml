@@ -11,7 +11,7 @@
 		<SubCategory_Num>7</SubCategory_Num>
 		<friendlyName>OpenSprinkler Controller</friendlyName>
 		<manufacturer>RaysHobby</manufacturer>
-		<manufacturerURL>http://www.rayshobby.net</manufacturerURL>
+		<manufacturerURL>https://github.com/dbochicchio/vera/OpenSprinkler</manufacturerURL>
 		<modelDescription>Sprinkler Controller</modelDescription>
 		<modelName>OpenSprinkler</modelName>
 		<modelNumber>1.0</modelNumber>
