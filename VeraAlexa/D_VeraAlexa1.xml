@@ -22,11 +22,11 @@
 				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
 			</service>
-			<service>
+			<!--<service>
 				<serviceType>urn:micasaverde-com:service:Volume:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>
 				<SCPDURL>S_Volume1.xml</SCPDURL>
-			</service>
+			</service>-->
 		</serviceList>
 		<implementationList>
 			<implementationFile>I_VeraAlexa1.xml</implementationFile>
