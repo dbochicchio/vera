@@ -1,4 +1,4 @@
-# Alex TTS (Text-To-Speech) plug-in for Vera
+# Alexa TTS (Text-To-Speech) plug-in for Vera
 This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control_plain.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo.
 
 Right now, only TTS is implemented, but any other commands can be called. This is a work in progress.
