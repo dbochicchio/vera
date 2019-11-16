@@ -14,7 +14,7 @@ local TASK_BUSY = 1
 local masterID = -1
 
 -- SIDS
-local MYSID								= "urn:bochicchio-com:serviceId:VeraAlexa1"
+local MYSID			    				= "urn:bochicchio-com:serviceId:VeraAlexa1"
 local HASID								= "urn:micasaverde-com:serviceId:HaDevice1"
 
 -- COMMANDS
