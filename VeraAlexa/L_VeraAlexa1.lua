@@ -156,7 +156,7 @@ local function initVar(name, dflt, dev, sid)
     end
     return currVal
 end
-3
+
 function os.capture(cmd, raw)
     local handle = assert(io.popen(cmd, 'r'))
     local output = assert(handle:read('*a'))

@@ -1,26 +1,26 @@
 <?xml version="1.0"?>
 <implementation>
 	<functions>
-		function startupPlugin(devNum)
-			VeraAlexa1 = require("L_VeraAlexa1")
-			return VeraAlexa1.startPlugin(devNum)
-		end
+    function startupPlugin(devNum)
+    luup.log("VeraAlexa Controller Plug-In starting...")
+    VeraAlexa1 = require("L_VeraAlexa1")
+    return VeraAlexa1.startPlugin(devNum)
+    end
 
-		function updateStatus()
-			VeraAlexa1.updateStatus()
-		end
+    function updateStatus()
+    VeraAlexa1.updateStatus()
+    end
 
-		function clearMessage()
-			VeraAlexa1.clearMessage()
-		end
+    function clearMessage()
+    VeraAlexa1.clearMessage()
+    end
 
-		function checkQueue(device)
-			VeraAlexa1.checkQueue(device)
-		end
-	</functions>
+    function checkQueue(device)
+    VeraAlexa1.checkQueue(device)
+    end
+  </functions>
 	<startup>startupPlugin</startup>
 	<actionList>
-		<!-- TTS -->
 		<action>
 			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 			<name>Say</name>
@@ -36,7 +36,6 @@
 			</run>
 		</action>
 		
-		<!-- volume -->
 		<action>
 			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 			<name>Down</name>
@@ -66,7 +65,6 @@
 			</run>
 		</action>
 		
-		<!-- official Volume service-->
 		<action>
 			<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>
 			<name>Down</name>
