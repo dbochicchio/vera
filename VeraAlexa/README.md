@@ -9,19 +9,21 @@ All the devices are implemented as standard Vera device types.
 **This is beta software!**
 
 If you find problem with the sh script, please refer to its author.
-Right now, due to Vera's OS limited capabilities, only account with MFA disabled are supported.
+Due to Vera's OS limited capabilities, only accounts with MFA disabled are supported at the moment.
 
 # Installation
-To install, simply upload this files using Vera's feature (Go to Apps, then Develop Apps, then Luup files and select upload) and then create a new device using these files.
-To create a new device, got to Apps, then Develops, then Create device.
-Every time you want to map a new controller, just repeat this operation.
+To install, simply upload this files using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device using these files.
+To create a new device, got to *Apps*, then *Develop Apps*, then *Create device*.
 
 - Device Type: *urn:dlna-org:device:DLNAMediaController:1*
 - Upnp Device Filename/Device File: *D_VeraAlexa1.xml*
 - Upnp Implementation Filename/Implementation file: *I_VeraAlexa1.xml*
 - Parent Device: none
 
-After installation, ensure to change Username, Password, DefaultEcho, DefaultVolume, Language and AlexaHost/AmazonHost to your settings. Please refer to the original script instruction for more info.
+# Configuration
+After installation, ensure to change mandatory variables under your Device, then *Advanced*, then *Variables*.
+Please set Username, Password, DefaultEcho, DefaultVolume, Language and AlexaHost/AmazonHost to your settings.
+Please refer to the original script instructions for more info about the correct values.
 
 # Use in code: TTS
 Standard DLNAMediaController1:
@@ -38,16 +40,15 @@ Using Sonos plug-in endpoints:
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom"}, 666)*
 
-Language should be set globally, volume can be omitted (and DefaultVolume will be used), device can be omitted (and DefaultEcho will be used).
+Language should be set globally, volume can be omitted (and *DefaultVolume* variable will be used instead), device can be omitted (and *DefaultEcho* will be used instead).
 
 # Use in code: Volume
-
 - urn:dlna-org:serviceId:DLNAMediaController1: Down/Up/Mute
-- urn:dlna-org:serviceId:DLNAMediaController1: SetVolume (DesiredVolume, GroupZones)
+- urn:dlna-org:serviceId:DLNAMediaController1: SetVolume (with parameter DesiredVolume and GroupZones)
 - urn:micasaverde-com:serviceId:Volume1: Down/Up/Mute
 - 
 # OpenLuup/ALTUI
-The devices are working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
+The device is working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
 # Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).
