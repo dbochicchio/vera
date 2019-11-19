@@ -1,5 +1,5 @@
 # Vera
-Various plug-ins for Vera Platform.
+Various plug-ins for Mios'Vera Platform (Luup engine).
 
 # Virtual HTTP Light Devices plug-in for Vera
 This plug-in represent a virtual device that performs HTTP calls, starting from a standard Vera device.
