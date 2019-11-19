@@ -9,6 +9,11 @@ The plug-in covers RGB Lights, Dimmers and Switch Lights.
 [More info](VirtualDevices/)
 
 # OpenSprinkler
-This plug-in offers support for OpenSprinkler inside Vera.
+This plug-in offers support for OpenSprinkler under Luup.
 
 [More info](OpenSprinkler/)
+
+# Vera TSS for Alexa
+This plug-in offers TTS support for Alexa (and more) under Luup.
+
+[More info](VeraAlexa/)
