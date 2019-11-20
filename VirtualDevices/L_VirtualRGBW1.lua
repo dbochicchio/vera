@@ -1,6 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
+local _PLUGIN_VERSION = "1.2.0"
 
 local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualRGBW1"
@@ -407,7 +408,7 @@ end
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    L("Virtual RGBW Plugin STARTUP!")
+    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
     initVar("Target", "0", devNum, SWITCHSID)
     initVar("Status", "-1", devNum, SWITCHSID)
@@ -433,6 +434,9 @@ function startPlugin(devNum)
 	-- device categories
     luup.attr_set("category_num", "2", devNum)
     luup.attr_set("subcategory_num", "4", devNum)
+
+	-- be sure impl file is not messed up
+	luup.attr_set("impl_file", "I_VirtualRGBW1", devNum)
 
     -- status
     luup.set_failure(0, devNum)

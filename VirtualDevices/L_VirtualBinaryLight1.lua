@@ -1,6 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
+local _PLUGIN_VERSION = "1.2.0"
 
 local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
@@ -261,7 +262,8 @@ end
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    L("Virtual BinaryLight Plugin STARTUP!")
+    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
+
 	local deviceType = luup.attr_get('device_file')
 
     initVar("Target", "0", devNum, SWITCHSID)
@@ -289,6 +291,9 @@ function startPlugin(devNum)
 	if luup.attr_get("subcategory_num") == nil then
 		luup.attr_set("subcategory_num", "3", devNum) -- in wall switch
 	end
+
+	-- be sure impl file is not messed up
+	luup.attr_set("impl_file", "I_VirtualBinaryLight1", devNum)
 
     -- status
     luup.set_failure(0, devNum)
