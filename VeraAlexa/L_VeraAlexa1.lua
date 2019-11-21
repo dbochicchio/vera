@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.1"
+local _PLUGIN_VERSION = "0.1.2"
 
 local debugMode = false
 local openLuup = false
@@ -14,13 +14,13 @@ local TASK_BUSY = 1
 local masterID = -1
 
 -- SIDS
-local MYSID			    				= "urn:bochicchio-com:serviceId:VeraAlexa1"
-local HASID								= "urn:micasaverde-com:serviceId:HaDevice1"
+local MYSID			    				  = "urn:bochicchio-com:serviceId:VeraAlexa1"
+local HASID								    = "urn:micasaverde-com:serviceId:HaDevice1"
 
 -- COMMANDS
 local COMMANDS_SPEAK					= "-e speak:%s -d %q"
-local COMMANDS_SETVOLUME				= "-e vol:%s -d %q"
-local COMMANDS_GETVOLUME				= "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
+local COMMANDS_SETVOLUME			= "-e vol:%s -d %q"
+local COMMANDS_GETVOLUME			= "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
 local BIN_PATH = "/storage/alexa"
 
 TASK_HANDLE = nil
@@ -273,7 +273,8 @@ end
 
 function checkQueue(device)
 	D("checkQueue: %1", device)
-
+	if not ttsQueue[device] then ttsQueue[device] = {} end
+	
 	-- is queue now empty?
 	table.remove(ttsQueue[device], 1)
 	if #ttsQueue[device] == 0 then
