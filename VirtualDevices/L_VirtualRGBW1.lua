@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.2.0"
+local _PLUGIN_VERSION = "1.2.2"
 
 local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualRGBW1"
@@ -436,7 +436,7 @@ function startPlugin(devNum)
     luup.attr_set("subcategory_num", "4", devNum)
 
 	-- be sure impl file is not messed up
-	luup.attr_set("impl_file", "I_VirtualRGBW1", devNum)
+	luup.attr_set("impl_file", "I_VirtualRGBW1.xml", devNum)
 
     -- status
     luup.set_failure(0, devNum)
