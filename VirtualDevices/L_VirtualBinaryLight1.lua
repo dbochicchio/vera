@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
-local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.2.0"
+local _PLUGIN_NAME = "VirtualBinaryLight"
+local _PLUGIN_VERSION = "1.2.2"
 
 local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
@@ -162,7 +162,7 @@ function httpGet(url)
 
 	L('HttpGet: %1 - %2 - %3 - %4', url, (response or ''), tostring(status), tostring(table.concat(response_body or '')))
 
-    if tonumber(status) >= 200 and tonumber(status) < 300 then
+    if tonumber(status or -1) >= 200 and tonumber(status or -1) < 300 then
 		return true, tostring(table.concat(response_body or ''))
 	else
 		return false
@@ -269,14 +269,19 @@ function startPlugin(devNum)
     initVar("Target", "0", devNum, SWITCHSID)
     initVar("Status", "-1", devNum, SWITCHSID)
 
-    initVar("LoadLevelTarget", "0", devNum, DIMMERSID)
-    initVar("LoadLevelStatus", "0", devNum, DIMMERSID)
-    initVar("LoadLevelLast", "100", devNum, DIMMERSID)
-    initVar("TurnOnBeforeDim", "1", devNum, DIMMERSID)
-    initVar("AllowZeroLevel", "0", devNum, DIMMERSID)
+	-- dimmer specific code
+	if deviceType == "D_DimmableLight1.xml" then
+		initVar("LoadLevelTarget", "0", devNum, DIMMERSID)
+		initVar("LoadLevelStatus", "0", devNum, DIMMERSID)
+		initVar("LoadLevelLast", "100", devNum, DIMMERSID)
+		initVar("TurnOnBeforeDim", "1", devNum, DIMMERSID)
+		initVar("AllowZeroLevel", "0", devNum, DIMMERSID)
 
+		initVar(COMMANDS_SETBRIGHTNESS, "http://", devNum, MYSID)
+	end
+
+	-- normal switch
     initVar(COMMANDS_SETPOWER, "http://", devNum, MYSID)
-    initVar(COMMANDS_SETBRIGHTNESS, "http://", devNum, MYSID)
 	initVar(COMMANDS_TOGGLE, "http://", devNum, MYSID)
 
 	-- set at first run, then make it configurable
@@ -293,7 +298,7 @@ function startPlugin(devNum)
 	end
 
 	-- be sure impl file is not messed up
-	luup.attr_set("impl_file", "I_VirtualBinaryLight1", devNum)
+	luup.attr_set("impl_file", "I_VirtualBinaryLight1.xml", devNum)
 
     -- status
     luup.set_failure(0, devNum)
