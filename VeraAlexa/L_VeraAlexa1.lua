@@ -193,15 +193,6 @@ function addToQueue(device, settings)
         table.insert(ttsQueue[device], settings)
     end
     D('addToQueue - After: %1', #ttsQueue[device])
-
-	-- last one in queue, let's process directly
---	if #ttsQueue[device] <= howMany then
---		D("Only one in queue, play for %1", device)
---		sayTTS(device, settings)
---	else
-        D('Adding to queue for %1', device)
---		luup.call_delay("checkQueue", 50, device)
---	end
 end
 
 local function executeCommand(command, capture)
@@ -277,13 +268,12 @@ function setVolume(volume, device, settings)
 end
 
 function checkQueue(device)
-	D("checkQueue: %1", device)
 	if not ttsQueue[device] then ttsQueue[device] = {} end
-	
+	D("checkQueue: %1 - %2 in queue", device, #ttsQueue[device])
+    
 	-- is queue now empty?
-	table.remove(ttsQueue[device], 1)
 	if #ttsQueue[device] == 0 then
-		D("checkQueue: %1 no more items in queue", device)
+		D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
         luup.call_delay("checkQueue", 5, device)
 		return true
 	end
@@ -291,6 +281,9 @@ function checkQueue(device)
 	D("checkQueue: %1 play next", device)
 	-- get the next one
 	sayTTS(device, ttsQueue[device][1])
+    
+    -- remove from queue
+    table.remove(ttsQueue[device], 1)
 end
 
 function isFile(name)
