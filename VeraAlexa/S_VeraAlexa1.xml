@@ -19,6 +19,15 @@
 			</allowedValueRange>
 		</stateVariable>
 		<stateVariable sendEvents="no">
+			<name>A_ARG_TYPE_Repeat</name>
+			<dataType>ui2</dataType>
+			<allowedValueRange>
+				<minimum>1</minimum>
+				<maximum>100</maximum>
+				<step>1</step>
+			</allowedValueRange>
+		</stateVariable>
+		<stateVariable sendEvents="no">
 			<name>A_ARG_TYPE_Text</name>
 			<dataType>string</dataType>
 		</stateVariable>
@@ -79,6 +88,11 @@
 					<name>Volume</name>
 					<direction>in</direction>
 					<relatedStateVariable>A_ARG_TYPE_Volume</relatedStateVariable>
+				</argument>
+				<argument>
+					<name>Repeat</name>
+					<direction>in</direction>
+					<relatedStateVariable>A_ARG_TYPE_Repeat</relatedStateVariable>
 				</argument>
 			</argumentList>
 		</action>

@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.1.2"
+local _PLUGIN_VERSION = "0.1.3"
 
 local debugMode = false
 local openLuup = false
@@ -13,15 +13,15 @@ local TASK_SUCCESS = 4
 local TASK_BUSY = 1
 local masterID = -1
 
--- SIDS
-local MYSID			    				  = "urn:bochicchio-com:serviceId:VeraAlexa1"
-local HASID								    = "urn:micasaverde-com:serviceId:HaDevice1"
+-- SIDs
+local MYSID                                 = "urn:bochicchio-com:serviceId:VeraAlexa1"
+local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
 
 -- COMMANDS
-local COMMANDS_SPEAK					= "-e speak:%s -d %q"
-local COMMANDS_SETVOLUME			= "-e vol:%s -d %q"
-local COMMANDS_GETVOLUME			= "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
-local BIN_PATH = "/storage/alexa"
+local COMMANDS_SPEAK					    = "-e speak:%s -d %q"
+local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
+local COMMANDS_GETVOLUME			        = "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
+local BIN_PATH                              = "/storage/alexa"
 
 TASK_HANDLE = nil
 
@@ -187,14 +187,19 @@ function addToQueue(device, settings)
 	L("TTS added to queue for %1", device)
 	if not ttsQueue[device] then ttsQueue[device] = {} end
 
-	-- TODO: handle repeat param
-	table.insert(ttsQueue[device], settings)
+    local howMany = (settings.Repeat or 1)
+    D('addToQueue - Before: %1', #ttsQueue[device])
+    for f = 1, howMany do
+        table.insert(ttsQueue[device], settings)
+    end
+    D('addToQueue - After: %1', #ttsQueue[device])
 
 	-- last one in queue, let's process directly
-	if #ttsQueue[device] == 1 then
-		D("Only one in queue, let's play %1", device)
+	if #ttsQueue[device] <= 1 then
+		D("Only one in queue, play for %1", device)
 		sayTTS(device, settings)
 	else
+        D('Adding to queue for %1', device)
 		luup.call_delay("checkQueue", 50, device)
 	end
 end

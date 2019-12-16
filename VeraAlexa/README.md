@@ -30,17 +30,18 @@ Standard DLNAMediaController1:
 
 *luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
   "Say",
-  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom"}, 666)*
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)*
 
-Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!)
+Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!).
 
 Using Sonos plug-in endpoints:
 
 *luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
   "Say",
-  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom"}, 666)*
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)*
 
 Language should be set globally, volume can be omitted (and *DefaultVolume* variable will be used instead), device can be omitted (and *DefaultEcho* will be used instead).
+You can omit *Repeat* param and 1 will be used as default.
 
 # Use in code: Volume
 - urn:dlna-org:serviceId:DLNAMediaController1: Down/Up/Mute
