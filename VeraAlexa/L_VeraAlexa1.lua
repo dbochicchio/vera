@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.1.3"
+local _PLUGIN_VERSION = "0.1.4"
 
 local debugMode = false
 local openLuup = false
@@ -195,13 +195,13 @@ function addToQueue(device, settings)
     D('addToQueue - After: %1', #ttsQueue[device])
 
 	-- last one in queue, let's process directly
-	if #ttsQueue[device] <= howMany then
-		D("Only one in queue, play for %1", device)
-		sayTTS(device, settings)
-	else
+--	if #ttsQueue[device] <= howMany then
+--		D("Only one in queue, play for %1", device)
+--		sayTTS(device, settings)
+--	else
         D('Adding to queue for %1', device)
-		luup.call_delay("checkQueue", 50, device)
-	end
+--		luup.call_delay("checkQueue", 50, device)
+--	end
 end
 
 local function executeCommand(command, capture)
@@ -284,6 +284,7 @@ function checkQueue(device)
 	table.remove(ttsQueue[device], 1)
 	if #ttsQueue[device] == 0 then
 		D("checkQueue: %1 no more items in queue", device)
+        luup.call_delay("checkQueue", 5, device)
 		return true
 	end
 
@@ -358,6 +359,8 @@ function startPlugin(devNum)
 
 	-- randomizer
 	math.randomseed(tonumber(tostring(os.time()):reverse():sub(1,6)))
+
+    checkQueue(masterID)
 
     -- status
     luup.set_failure(0, devNum)
