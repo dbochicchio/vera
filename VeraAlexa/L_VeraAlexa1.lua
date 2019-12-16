@@ -187,7 +187,7 @@ function addToQueue(device, settings)
 	L("TTS added to queue for %1", device)
 	if not ttsQueue[device] then ttsQueue[device] = {} end
 
-    local howMany = (settings.Repeat or 1)
+    local howMany = tonumber(settings.Repeat or 1)
     D('addToQueue - Before: %1', #ttsQueue[device])
     for f = 1, howMany do
         table.insert(ttsQueue[device], settings)
@@ -195,7 +195,7 @@ function addToQueue(device, settings)
     D('addToQueue - After: %1', #ttsQueue[device])
 
 	-- last one in queue, let's process directly
-	if #ttsQueue[device] <= 1 then
+	if #ttsQueue[device] <= howMany then
 		D("Only one in queue, play for %1", device)
 		sayTTS(device, settings)
 	else
