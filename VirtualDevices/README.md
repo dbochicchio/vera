@@ -37,22 +37,27 @@ To configure a virtual device, just enter its details, then go to Advanced and s
 In order to configure a device, you must specify its remote HTTP endpoints. Those vary depending on the device capabilities, so search for the corresponding API. As with any HTTP device, a static IP is recommended. Check your device or router for instruction on how to do that.
 
 #### Switch On/Off (All)
-Set *SetPowerURL* variable to the corresponding HTTP call.
+To turn ON, set *SetPowerURL* variable to the corresponding HTTP call.
 
-For Tasmota: http://mydevice/cm?cmnd=Power+%s
+For Tasmota: http://mydevice/cm?cmnd=Power+On
 
-For Shelly: http://mydevice/relay/0?turn=+%s
+For Shelly: http://mydevice/relay/0?turn=on
 
+To turn OFF, set *SetPowerOffURL* variable to the corresponding HTTP call.
 
-The %s parameter will be replace with On/Off, based on the required action.
+For Tasmota: http://mydevice/cm?cmnd=Power+Off
+
+For Shelly: http://mydevice/relay/0?turn=off
+
+You can also specify only *SetPowerURL*, like this: http://mydevice/cm?cmnd=Power+%s
+The %s parameter will be replace with On/Off (this very same case), based on the required action.
 
 #### Toggle (All)
 Set *SetToggleURL* variable to the corresponding HTTP call.
 
 For Tasmota: http://mydevice/cm?cmnd=Power+Toggle
 
-For Shelly: not supported
-
+For Shelly: http://mydevice/relay/0?turn=toggle
 
 No params required.
 

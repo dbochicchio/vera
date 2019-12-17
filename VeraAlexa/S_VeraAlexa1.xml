@@ -39,33 +39,27 @@
 			<name>A_ARG_TYPE_Device</name>
 			<dataType>string</dataType>
 		</stateVariable>
+		<stateVariable sendEvents="no">
+			<name>A_ARG_TYPE_RoutineName</name>
+			<dataType>string</dataType>
+		</stateVariable>
 	</serviceStateTable>
 	<actionList>
-		<!--<action>
-			<name>Play</name>
+		<action>
+			<name>RunRoutine</name>
 			<argumentList>
 				<argument>
-					<name>URI</name>
+					<name>RoutineName</name>
 					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_URI</relatedStateVariable>
+					<relatedStateVariable>A_ARG_TYPE_RoutineName</relatedStateVariable>
 				</argument>
 				<argument>
-					<name>Protocol</name>
+					<name>GroupZones</name>
 					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Protocol</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>Volume</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Volume</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>Duration</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Duration</relatedStateVariable>
+					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
 				</argument>
 			</argumentList>
-		</action>-->
+		</action>
 		<action>
 			<name>Say</name>
 			<argumentList>

@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.1.4"
+local _PLUGIN_VERSION = "0.1.5"
 
 local debugMode = false
 local openLuup = false
@@ -19,6 +19,7 @@ local HASID                                 = "urn:micasaverde-com:serviceId:HaD
 
 -- COMMANDS
 local COMMANDS_SPEAK					    = "-e speak:%s -d %q"
+local COMMANDS_ROUTINE					    = "-e automation:\"%s\" -d %q"
 local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
 local COMMANDS_GETVOLUME			        = "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
 local BIN_PATH                              = "/storage/alexa"
@@ -183,6 +184,27 @@ end
 -- ** PLUGIN CODE **
 local ttsQueue = {}
 
+function checkQueue(device)
+	local device = tonumber(device)
+
+	if not ttsQueue[device] then ttsQueue[device] = {} end
+	D("checkQueue: %1 - %2 in queue", device, #ttsQueue[device])
+    
+	-- is queue now empty?
+	if #ttsQueue[device] == 0 then
+		D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
+        luup.call_delay("checkQueue", 5, device)
+		return true
+	end
+
+	D("checkQueue: %1 play next", device)
+	-- get the next one
+	sayTTS(device, ttsQueue[device][1])
+    
+    -- remove from queue
+    table.remove(ttsQueue[device], 1)
+end
+
 function addToQueue(device, settings)
 	L("TTS added to queue for %1", device)
 	if not ttsQueue[device] then ttsQueue[device] = {} end
@@ -228,19 +250,33 @@ end
 function sayTTS(device, settings)
 	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
 	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
+	local text = (settings.Text or "Test")
 
 	local command = buildCommand(settings) ..
 					string.format(COMMANDS_SPEAK,
-                                    string.gsub((settings.Text or "Test"), "%s+", "_"),
+                                    string.gsub(text, "%s+", "_"),
 									(settings.GroupZones or defaultDevice))
 
 
 	executeCommand(command)
-	L("Executing command: %1", command)
+	L("Executing command [TTS]: %1", command)
 
 	-- wait for x seconds based on string length
-	local timeout =  0.062 * string.len(settings.Text) + 1
+	local timeout =  0.062 * string.len(text) + 1
 	luup.call_delay("checkQueue", timeout, device)
+    D("Queue will be checked again in %1 secs", timeout)
+end
+
+function runRoutine(device, settings)
+	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
+
+	local command = buildCommand(settings) ..
+					string.format(COMMANDS_ROUTINE,
+                                    settings.RoutineName,
+									(settings.GroupZones or defaultDevice))
+
+	executeCommand(command)
+	L("Executing command [runRoutine]: %1", command)
 end
 
 function setVolume(volume, device, settings)
@@ -265,25 +301,6 @@ function setVolume(volume, device, settings)
 						string.format(COMMANDS_SETVOLUME, finalVolume, echoDevice)
 
 	executeCommand(command)
-end
-
-function checkQueue(device)
-	if not ttsQueue[device] then ttsQueue[device] = {} end
-	D("checkQueue: %1 - %2 in queue", device, #ttsQueue[device])
-    
-	-- is queue now empty?
-	if #ttsQueue[device] == 0 then
-		D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
-        luup.call_delay("checkQueue", 5, device)
-		return true
-	end
-
-	D("checkQueue: %1 play next", device)
-	-- get the next one
-	sayTTS(device, ttsQueue[device][1])
-    
-    -- remove from queue
-    table.remove(ttsQueue[device], 1)
 end
 
 function isFile(name)
