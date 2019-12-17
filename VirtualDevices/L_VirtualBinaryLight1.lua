@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.2.2"
+local _PLUGIN_VERSION = "1.3.0"
 
 local debugMode = false
 local MYSID = "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
@@ -10,6 +10,7 @@ local SWITCHSID = "urn:upnp-org:serviceId:SwitchPower1"
 local DIMMERSID = "urn:upnp-org:serviceId:Dimming1"
 
 local COMMANDS_SETPOWER = "SetPowerURL"
+local COMMANDS_SETPOWEROFF = "SetPowerOffURL"
 local COMMANDS_SETBRIGHTNESS = "SetBrightnessURL"
 local COMMANDS_TOGGLE = "SetToggleURL"
 
@@ -218,7 +219,7 @@ function actionPower(state, dev)
     setVar(SWITCHSID, "Status", state and "1" or "0", dev)
     -- UI needs LoadLevelTarget/Status to comport with state according to Vera's rules.
     if not state then
-			sendDeviceCommand(COMMANDS_SETPOWER, "off", dev)
+			sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, "off", dev)
 			setVar(DIMMERSID, "LoadLevelTarget", 0, dev)
 			setVar(DIMMERSID, "LoadLevelStatus", 0, dev)
     else
@@ -249,7 +250,7 @@ function actionBrightness(newVal, dev)
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, dev)
     else
         -- Level 0 (not allowed as an "on" state), switch light off.
-        sendDeviceCommand(COMMANDS_SETPOWER, {"off"}, dev)
+        sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, {"off"}, dev)
         setVar(SWITCHSID, "Target", 0, dev)
         setVar(SWITCHSID, "Status", 0, dev)
     end
@@ -281,8 +282,11 @@ function startPlugin(devNum)
 	end
 
 	-- normal switch
-    initVar(COMMANDS_SETPOWER, "http://", devNum, MYSID)
+    local commandPower = initVar(COMMANDS_SETPOWER, "http://", devNum, MYSID)
 	initVar(COMMANDS_TOGGLE, "http://", devNum, MYSID)
+
+	-- upgrade code
+	initVar(COMMANDS_SETPOWEROFF, commandPower, devNum, MYSID)
 
 	-- set at first run, then make it configurable
 	if luup.attr_get("category_num") == nil then

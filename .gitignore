@@ -5,3 +5,4 @@
 /.vs
 *.dev.sh
 /VeraAlexa/S_Volume1.xml
+.editorconfig
