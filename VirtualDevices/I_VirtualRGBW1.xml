@@ -18,6 +18,13 @@
 			</run>
 		</action>
 		<action>
+			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+			<name>GetTarget</name>
+			<run>
+				return luup.variable_get("urn:upnp-org:serviceId:SwitchPower1", "Status", lul_device)
+			</run>
+		</action>
+		<action>
 			<serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
 			<name>SetLoadLevelTarget</name>
 			<run>

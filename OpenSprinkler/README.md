@@ -56,4 +56,4 @@ Master device has support to set Rain Delay via *urn:bochicchio-com:serviceId:Op
 The devices are working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
 # Support
-If you need more help, please post it on Vera's forum and tag me (@therealdb).
+If you need more help, please post on Vera's forum and tag me (@therealdb).

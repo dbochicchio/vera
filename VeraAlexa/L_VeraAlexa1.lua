@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.1.5"
+local _PLUGIN_VERSION = "0.2.0"
 
 local debugMode = false
 local openLuup = false
@@ -23,6 +23,7 @@ local COMMANDS_ROUTINE					    = "-e automation:\"%s\" -d %q"
 local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
 local COMMANDS_GETVOLUME			        = "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
 local BIN_PATH                              = "/storage/alexa"
+local SCRIPT_NAME							= "alexa_remote_control_plain.sh"
 
 TASK_HANDLE = nil
 
@@ -149,7 +150,7 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(name, dflt, dev, sid)
+local function initVar(sid, name, dflt, dev)
     local currVal = luup.variable_get(sid, name, dev)
     if currVal == nil then
         luup.variable_set(sid, name, tostring(dflt), dev)
@@ -187,7 +188,7 @@ local ttsQueue = {}
 function checkQueue(device)
 	local device = tonumber(device)
 
-	if not ttsQueue[device] then ttsQueue[device] = {} end
+	if ttsQueue[device] == nil then ttsQueue[device] = {} end
 	D("checkQueue: %1 - %2 in queue", device, #ttsQueue[device])
     
 	-- is queue now empty?
@@ -207,7 +208,9 @@ end
 
 function addToQueue(device, settings)
 	L("TTS added to queue for %1", device)
-	if not ttsQueue[device] then ttsQueue[device] = {} end
+	if ttsQueue[device] == nil then ttsQueue[device] = {} end
+
+	local startPlaying = #ttsQueue[device] == 0
 
     local howMany = tonumber(settings.Repeat or 1)
     D('addToQueue - Before: %1', #ttsQueue[device])
@@ -215,6 +218,10 @@ function addToQueue(device, settings)
         table.insert(ttsQueue[device], settings)
     end
     D('addToQueue - After: %1', #ttsQueue[device])
+
+	if (startPlaying) then
+		checkQueue(device)
+	end
 end
 
 local function executeCommand(command, capture)
@@ -222,13 +229,14 @@ local function executeCommand(command, capture)
 
 	-- TODO: try/catch	
 	local r = os.capture(command)
+
 	D("Response from Alexa.sh: %1", r)
 	
 	return r
 end
 
 local function buildCommand(settings)
-	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/alexa_remote_control_plain.sh "
+	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/alexa_remote_control.sh "
 	local username = getVar("Username", "", masterID, MYSID)
 	local password = getVar("Password", "", masterID, MYSID)
 	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
@@ -259,7 +267,7 @@ function sayTTS(device, settings)
 
 
 	executeCommand(command)
-	L("Executing command [TTS]: %1", command)
+	D("Executing command [TTS]: %1", command)
 
 	-- wait for x seconds based on string length
 	local timeout =  0.062 * string.len(text) + 1
@@ -276,7 +284,7 @@ function runRoutine(device, settings)
 									(settings.GroupZones or defaultDevice))
 
 	executeCommand(command)
-	L("Executing command [runRoutine]: %1", command)
+	D("Executing command [runRoutine]: %1", command)
 end
 
 function setVolume(volume, device, settings)
@@ -314,14 +322,14 @@ function setupScripts()
 	lfs.mkdir(BIN_PATH)
 
 	-- download script from github
-	os.execute("curl https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control_plain.sh > " .. BIN_PATH .. "/alexa_remote_control_plain.sh")
+	os.execute("curl https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/" .. SCRIPT_NAME .. " > " .. BIN_PATH .. "/" .. SCRIPT_NAME)
 
 	-- add permission using lfs
-	os.execute("chmod 777 " .. BIN_PATH .. "/alexa_remote_control_plain.sh")
-	-- TODO: fix it and use lfs
-	-- lfs.attributes(BIN_PATH .. "/alexa_remote_control_plain.sh", {permissions = "777"})
+	os.execute("chmod 777 " .. BIN_PATH .. "/" .. SCRIPT_NAME)
+	-- TODO: fix this and use lfs
+	-- lfs.attributes(BIN_PATH .. "/alexa_remote_control.sh", {permissions = "777"})
 
-	-- first command must be executed to create cookie and such
+	-- first command must be executed to create cookie and setup the environment
 	executeCommand(buildCommand({}))
 
 	D("Setup completed")
@@ -330,7 +338,7 @@ end
 function startPlugin(devNum)
     masterID = devNum
 
-    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
+    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
 	-- decect OpenLuup
 	for k,v in pairs(luup.devices) do
@@ -339,19 +347,21 @@ function startPlugin(devNum)
 			D("Running on OpenLuup: %1", openLuup)
 
 			BIN_PATH = "/etc/cmh-ludl/VeraAlexa"
+			SCRIPT_NAME = "alexa_remote_control.sh"
 		end
 	end
 
 	-- init default vars
-    initVar("DebugMode", 0, devNum, MYSID)
-	initVar("Username", "youraccount@amazon.com", devNum, MYSID)
-    initVar("Password", "password", devNum, MYSID)
-	initVar("DefaultEcho", "Bedroom", devNum, MYSID)
-	initVar("DefaultVolume", 50, devNum, MYSID)
-	-- default for US
-	initVar("Language", "en-us", devNum, MYSID)
-	initVar("AlexaHost", "pitangui.amazon.com", devNum, MYSID)
-	initVar("AmazonHost", "amazon.com", devNum, MYSID)
+    initVar(MYSID, "DebugMode", 0, devNum)
+	initVar(MYSID, "Username", "youraccount@amazon.com", devNum)
+    initVar(MYSID, "Password", "password", devNum)
+	initVar(MYSID, "DefaultEcho", "Bedroom", devNum)
+	initVar(MYSID, "DefaultVolume", 50, devNum)
+
+	-- init default values for US
+	initVar(MYSID, "Language", "en-us", devNum)
+	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", devNum)
+	initVar(MYSID, "AmazonHost", "amazon.com", devNum)
 
 	-- categories
 	if luup.attr_get("category_num", devNum) == nil then
@@ -359,8 +369,8 @@ function startPlugin(devNum)
 	end
 
 	-- check for configured flag and for the script
-	local configured = getVarNumeric("Configured", 0, masterID, HASID)
-	if configured == 0 or not isFile(BIN_PATH .. "/alexa_remote_control_plain.sh") then
+	local configured = getVarNumeric(HASID, "Configured", 0, masterID)
+	if configured == 0 or not isFile(BIN_PATH .. "/alexa_remote_control.sh") then
 		setupScripts()
 		setVar(HASID, "Configured", 1, devNum)
 	else

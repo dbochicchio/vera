@@ -1,7 +1,7 @@
 module("L_OpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.95.1"
+local _PLUGIN_VERSION = "0.99.0"
 
 local debugMode = false
 local masterID = -1
@@ -96,7 +96,7 @@ local function L(msg, ...) -- luacheck: ignore 212
     luup.log(str, level)
 end
 
-local function getVarNumeric(name, dflt, dev, sid)
+local function getVarNumeric(sid, name, dflt, dev)
     local s = luup.variable_get(sid, name, dev) or ""
     if s == "" then return dflt end
     s = tonumber(s)
@@ -104,7 +104,7 @@ local function getVarNumeric(name, dflt, dev, sid)
 end
 
 local function D(msg, ...)
-    debugMode = getVarNumeric("DebugMode", 0, masterID, MYSID) == 1
+    debugMode = getVarNumeric(MYSID, "DebugMode", 0, masterID) == 1
 
     if debugMode then
         local t = debug.getinfo(2)
@@ -125,7 +125,7 @@ local function setVar(sid, name, val, dev)
     return false, s
 end
 
-local function getVar(name, dflt, dev, sid)
+local function getVar(sid, name, dflt, dev)
     local s = luup.variable_get(sid, name, dev) or ""
     if s == "" then return dflt end
     return (s == nil) and dflt or s
@@ -157,7 +157,7 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(name, dflt, dev, sid)
+local function initVar(sid, name, dflt, dev)
     local currVal = luup.variable_get(sid, name, dev)
     if currVal == nil then
         luup.variable_set(sid, name, tostring(dflt), dev)
@@ -260,7 +260,7 @@ local function sendDeviceCommand(cmd, params)
     end
     local pstr = table.concat(pv, "&") or ""
 
-    local password = getVar("Password", "", masterID, MYSID)
+    local password = getVar(MYSID, "Password", "", masterID)
 	local ip = luup.attr_get("ip", masterID) or ""
 	D("OS Controller IP: %1", ip)
 
@@ -304,7 +304,7 @@ local function discovery()
 				else
 					D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
 
-					local overrideName = getVarNumeric("UpdateNameFromController", 1, childID, MYSID) == 1
+					local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
 					local oldName =	luup.attr_get("name")
 					if overrideName and oldName ~= zoneName then
 						luup.attr_set('name', zoneName, childID)
@@ -319,10 +319,10 @@ local function discovery()
 						setVar(HASID, "Configured", 1, childID)
 
 						-- dimmers
-						initVar("LoadLevelTarget", "0", childID, DIMMERSID)
-						initVar("LoadLevelLast", "0", childID, DIMMERSID)
-						initVar("TurnOnBeforeDim", "0", childID, DIMMERSID)
-						initVar("AllowZeroLevel", "1", childID, DIMMERSID)
+						initVar(DIMMERSID, "LoadLevelTarget", "0", childID)
+						initVar(DIMMERSID, "LoadLevelLast", "0", childID)
+						initVar(DIMMERSID, "TurnOnBeforeDim", "0", childID)
+						initVar(DIMMERSID, "AllowZeroLevel", "1", childID)
 					end
 
 					setLastUpdate(childID)
@@ -373,7 +373,7 @@ local function discovery()
 				else
 					D("Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
 
-					local overrideName = getVarNumeric("UpdateNameFromController", 1, childID, MYSID) == 1
+					local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
 					local oldName =	luup.attr_get("name")
 					if overrideName and oldName ~= programName then
 						luup.attr_set('name', programName, childID)
@@ -485,9 +485,9 @@ function updateStatus()
 	                local state = tonumber(programs[i][1] or "0") >= 1 and 1 or 0
 
 					-- Check to see if program status changed
-					local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
+					local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
 					if currentState ~= state then
-						initVar("Target", "0", childID, SWITCHSID)
+						initVar(SWITCHSID, "Target", "0", childID)
 						setVar(HASID, "Configured", "1", childID)
 						setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
@@ -526,12 +526,11 @@ function updateStatus()
                 local state = tonumber(jsonResponse.sn[i] or "0")
 
                 -- Check to see if zone status changed
-                local currentState = getVarNumeric("Status", 0, childID, SWITCHSID)
+                local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
                 if currentState ~= state then
-					initVar("Target", "0", childID, SWITCHSID)
+					initVar(SWITCHSID, "Target", "0", childID)
 					setVar(HASID, "Configured", "1", childID)
 
-                    --initVar(SWITCHSID, "Target", (state == 1) and "1" or "0", childID)
                     setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
 					setVerboseDisplay("Zone: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
@@ -574,7 +573,7 @@ function updateStatus()
     end
 
     -- schedule again
-    local refresh = getVarNumeric("Refresh", 10, masterID, MYSID)
+    local refresh = getVarNumeric(MYSID, "Refresh", 10, masterID)
     luup.call_timer("updateStatus", 1, tostring(refresh) .. "s", "")
 
 	D("Next refresh in " .. tostring(refresh) .. " secs")
@@ -589,11 +588,11 @@ function actionPower(state, dev)
     end
 
 --	 -- support for reverse?
---	local reverse = getVarNumeric("ReverseOnOff", 0, dev, HASID) == 1
+--	local reverse = getVarNumeric(HASID, "ReverseOnOff", 0, dev) == 1
 --	if reverse and state then state = false end
 --	if reverse and not state then state = true end
 
-	local level = getVarNumeric("LoadLevelLast", 5, dev, DIMMERSID) -- in seconds
+	local level = getVarNumeric(DIMMERSID, "LoadLevelLast", 5, dev) -- in seconds
 
 	actionPowerInternal(state, level * 60, dev)
 end
@@ -624,8 +623,8 @@ function actionPowerInternal(state, seconds, dev)
 
     -- master or zone?
     local cmd = COMMANDS_SETPOWER_ZONE
-	local zoneIndex = getVarNumeric("ZoneID", -1, dev, MYSID)
-	local programIndex = getVarNumeric("ProgramID", -1, dev, MYSID)
+	local zoneIndex = getVarNumeric(MYSID, "ZoneID", -1, dev)
+	local programIndex = getVarNumeric(MYSID, "ProgramID", -1, dev)
 
 	local isMaster = dev == masterID
 	local isZone = zoneIndex > -1
@@ -671,7 +670,7 @@ function actionPowerInternal(state, seconds, dev)
 end
 
 function actionPowerStopStation(dev)
-	local v = getVar("Zones", ",", dev, MYSID)
+	local v = getVar(MYSID, "Zones", ",", dev)
 	D("actionPowerStopStation: %1 - %2", dev, v)
 	local zones = split(v, ",")
 	if zones ~= nil and #zones>0 then
@@ -696,14 +695,14 @@ end
 
 -- Toggle state
 function actionToggleState(devNum)
-	local currentState = getVarNumeric("Status", 0, devNum, SWITCHSID) == 1
+	local currentState = getVarNumeric(SWITCHSID, "Status", 0, devNum) == 1
 	actionPower(not currentState, devNum)
 end
 
 function startPlugin(devNum)
     masterID = devNum
 
-    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
+    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
 	-- decect OpenLuup
 	for k,v in pairs(luup.devices) do
@@ -714,14 +713,14 @@ function startPlugin(devNum)
 	end
 
 	-- init
-    initVar("Target", "0", devNum, SWITCHSID)
-    initVar("Status", "-1", devNum, SWITCHSID)
+    initVar(SWITCHSID, "Target", "0", devNum)
+    initVar(SWITCHSID, "Status", "-1", devNum)
 
-    initVar('DebugMode', '0', devNum, MYSID)
+    initVar(MYSID, "DebugMode", "0", devNum)
 
-    initVar("Password", "a6d82bced638de3def1e9bbb4983225c", devNum, MYSID) -- opendoor
-    initVar("Refresh", "15", devNum, MYSID)
-    initVar("MaxZones", "32", devNum, MYSID)
+    initVar(MYSID, "Password", "a6d82bced638de3def1e9bbb4983225c", devNum) -- opendoor
+    initVar(MYSID, "Refresh", "15", devNum)
+    initVar(MYSID, "MaxZones", "32", devNum)
 
 	-- categories
 	if luup.attr_get("category_num", devNum) == nil or tostring(luup.attr_get("subcategory_num", devNum) == "0") then

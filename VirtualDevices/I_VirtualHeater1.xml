@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<implementation>
+	<functions>
+		function startupPlugin(devNum)
+			luup.log("VirtualHeater starting...")
+			VirtualHeater1 = require("L_VirtualHeater1")
+			thermostatWatch = VirtualHeater1.thermostatWatch
+			return VirtualHeater1.startPlugin(devNum)
+		end
+	</functions>
+	<startup>startupPlugin</startup>
+	<actionList>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+			<name>SetTarget</name>
+			<run>
+				VirtualHeater1.actionPower(lul_device, lul_settings.newTargetValue)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+			<name>GetTarget</name>
+			<run>
+				return luup.variable_get("urn:upnp-org:serviceId:SwitchPower1", "Status", lul_device)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
+			<name>ToggleState</name>
+			<run>
+				VirtualHeater1.actionToggleState(lul_device)
+				return 4,0
+			</run>
+		</action>
+		
+		<action>
+			<serviceId>urn:upnp-org:serviceId:TemperatureSetpoint1</serviceId>
+			<name>SetCurrentSetpoint</name>
+			<run>
+				VirtualHeater1.actionSetCurrentSetpoint(lul_device, lul_settings.NewCurrentSetpoint)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:TemperatureSetpoint1</serviceId>
+			<name>GetCurrentSetpoint</name>
+			<run>
+				return luup.variable_get("urn:upnp-org:serviceId:TemperatureSetpoint1", "CurrentSetpoint", lul_device)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:TemperatureSetpoint1_Heat</serviceId>
+			<name>SetCurrentSetpoint</name>
+			<run>
+				VirtualHeater1.actionSetCurrentSetpoint(lul_device, lul_settings.NewCurrentSetpoint)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:TemperatureSetpoint1_Heat</serviceId>
+			<name>GetCurrentSetpoint</name>
+			<run>
+				return luup.variable_get("urn:upnp-org:serviceId:TemperatureSetpoint1", "CurrentSetpoint", lul_device)
+			</run>
+		</action>
+
+		<action>
+			<serviceId>urn:upnp-org:serviceId:HVAC_UserOperatingMode1</serviceId>
+			<name>SetModeTarget</name>
+			<run>
+				VirtualHeater1.actionSetModeTarget(lul_device, lul_settings.NewModeTarget)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:HVAC_UserOperatingMode1</serviceId>
+			<name>SetEnergyModeTarget</name>
+			<run>
+				VirtualHeater1.actionSetEnergyModeTarget(lul_device, lul_settings.NewEnergyModeTarget)
+				return 4,0
+			</run>
+		</action>
+	</actionList>
+</implementation>
