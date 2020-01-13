@@ -18,8 +18,8 @@ In particular, I need help with
 - support for scenes
 
 # Installation
-To install, simply upload this files using Vera's feature (Go to Apps, then Develop Apps, then Luup files and select upload) and then create a new device using these files.
-To create a new device, got to Apps, then Develops, then Create device.
+To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
+To create a new device, got to *Apps*, then *Develops*, then *Create device*.
 Every time you want to map a new controller, just repeat this operation.
 
 - Device Type: *urn:schemas-upnp-org:device:BinaryLight:1*
