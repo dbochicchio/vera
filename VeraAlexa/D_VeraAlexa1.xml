@@ -22,11 +22,6 @@
 				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
 			</service>
-			<service>
-				<serviceType>urn:dlna-org:service:DLNAMediaController:1</serviceType>
-				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
-				<SCPDURL>S_VeraAlexa2.xml</SCPDURL>
-			</service>
 			<!--<service>
 				<serviceType>urn:micasaverde-com:service:Volume:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>

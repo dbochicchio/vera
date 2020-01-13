@@ -1,22 +1,27 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.2.2"
+local _PLUGIN_VERSION = "1.3.1"
 
 local debugMode = false
-local MYSID = "urn:bochicchio-com:serviceId:VirtualRGBW1"
 
-local BULBTYPE = "urn:schemas-upnp-org:device:DimmableRGBLight:1"
+local MYSID									= "urn:bochicchio-com:serviceId:VirtualRGBW1"
 
-local SWITCHSID = "urn:upnp-org:serviceId:SwitchPower1"
-local DIMMERSID = "urn:upnp-org:serviceId:Dimming1"
-local COLORSID = "urn:micasaverde-com:serviceId:Color1"
+local BULBTYPE								= "urn:schemas-upnp-org:device:DimmableRGBLight:1"
 
-local COMMANDS_SETPOWER = "SetPowerURL"
-local COMMANDS_SETBRIGHTNESS = "SetBrightnessURL"
-local COMMANDS_SETRGBCOLOR = "SetRGBColorURL"
-local COMMANDS_SETWHITETEMPERATURE = "SetWhiteTemperatureURL"
-local COMMANDS_TOGGLE = "SetToggleURL"
+local SWITCHSID								= "urn:upnp-org:serviceId:SwitchPower1"
+local DIMMERSID								= "urn:upnp-org:serviceId:Dimming1"
+local COLORSID								= "urn:micasaverde-com:serviceId:Color1"
+local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
+
+local COMMANDS_SETPOWER						= "SetPowerURL"
+local COMMANDS_SETBRIGHTNESS				= "SetBrightnessURL"
+local COMMANDS_SETRGBCOLOR					= "SetRGBColorURL"
+local COMMANDS_SETWHITETEMPERATURE			= "SetWhiteTemperatureURL"
+local COMMANDS_TOGGLE						= "SetToggleURL"
+local DEFAULT_ENDPOINT						= "http://"
+
+local deviceID = -1
 
 local localColors = {} -- locally defined colors are saved here
 local mfgcolor = {}
@@ -53,6 +58,19 @@ local function dump(t, seen)
     return str
 end
 
+local function getVarNumeric(sid, name, dflt, dev)
+    local s = luup.variable_get(sid, name, dev) or ""
+    if s == "" then return dflt end
+    s = tonumber(s)
+    return (s == nil) and dflt or s
+end
+
+local function getVar(sid, name, dflt, dev)
+    local s = luup.variable_get(sid, name, dev) or ""
+    if s == "" then return dflt end
+    return (s == nil) and dflt or s
+end
+
 local function L(msg, ...) -- luacheck: ignore 212
     local str
     local level = 50
@@ -79,6 +97,8 @@ local function L(msg, ...) -- luacheck: ignore 212
 end
 
 local function D(msg, ...)
+    debugMode = getVarNumeric(MYSID, "DebugMode", 0, deviceID) == 1
+
     if debugMode then
         local t = debug.getinfo(2)
         local pfx = _PLUGIN_NAME .. "(" .. tostring(t.name) .. "@" ..
@@ -97,19 +117,6 @@ local function setVar(sid, name, val, dev)
         return true, s
     end
     return false, s
-end
-
-local function getVarNumeric(name, dflt, dev, sid)
-    local s = luup.variable_get(sid, name, dev) or ""
-    if s == "" then return dflt end
-    s = tonumber(s)
-    return (s == nil) and dflt or s
-end
-
-local function getVar(name, dflt, dev, sid)
-    local s = luup.variable_get(sid, name, dev) or ""
-    if s == "" then return dflt end
-    return (s == nil) and dflt or s
 end
 
 local function split(str, sep)
@@ -139,7 +146,7 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(name, dflt, dev, sid)
+local function initVar(sid, name, dflt, dev)
     local currVal = luup.variable_get(sid, name, dev)
     if currVal == nil then
         luup.variable_set(sid, name, tostring(dflt), dev)
@@ -170,15 +177,15 @@ function httpGet(url)
 
 	L("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
-	if tonumber(status) >= 200 and tonumber(status) < 300 then
+	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))
 	else
 		return false
 	end
 end
 
-local function sendDeviceCommand(cmd, params, bulb)
-    D("sendDeviceCommand(%1,%2,%3)", cmd, params, bulb)
+local function sendDeviceCommand(cmd, params, devNum)
+    D("sendDeviceCommand(%1,%2,%3)", cmd, params, devNum)
     
     local pv = {}
     if type(params) == "table" then
@@ -197,16 +204,16 @@ local function sendDeviceCommand(cmd, params, bulb)
     end
     local pstr = table.concat(pv, ",")
 
-    local cmdUrl = getVar(cmd, "", bulb, MYSID)
-    if (cmd ~= "") then httpGet(string.format(cmdUrl, pstr)) end
+    local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
+    if (cmd ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
 
     return false
 end
 
 local function restoreBrightness(dev)
     -- Restore brightness
-    local brightness = getVarNumeric("LoadLevelLast", 0, dev, DIMMERSID)
-	local brightnessCurrent = getVarNumeric("LoadLevelStatus", 0, dev, DIMMERSID)
+    local brightness = getVarNumeric(DIMMERSID, "LoadLevelLast", 0, dev)
+	local brightnessCurrent = getVarNumeric(DIMMERSID, "LoadLevelStatus", 0, dev)
 
     if brightness > 0 and brightnessCurrent ~= brightness then
 		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, dev)
@@ -247,14 +254,14 @@ function actionBrightness(newVal, dev)
     end -- range
     if newVal > 0 then
         -- Level > 0, if light is off, turn it on.
-        local status = getVarNumeric("Status", 0, dev, SWITCHSID)
+        local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
         if status == 0 then
             sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
             setVar(SWITCHSID, "Target", 1, dev)
             setVar(SWITCHSID, "Status", 1, dev)
         end
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, dev)
-    elseif getVarNumeric("AllowZeroLevel", 0, dev, DIMMERSID) ~= 0 then
+    elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, dev) ~= 0 then
         -- Level 0 allowed as on state, just go with it.
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, dev)
     else
@@ -265,6 +272,7 @@ function actionBrightness(newVal, dev)
     end
     setVar(DIMMERSID, "LoadLevelTarget", newVal, dev)
     setVar(DIMMERSID, "LoadLevelStatus", newVal, dev)
+
     if newVal > 0 then setVar(DIMMERSID, "LoadLevelLast", newVal, dev) end
 end
 
@@ -315,7 +323,7 @@ end
 function actionSetColor(newVal, dev, sendToDevice)
     D("actionSetColor(%1,%2)", newVal, dev)
 
-    local status = getVarNumeric("Status", 0, dev, SWITCHSID)
+    local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
     if status == 0 and sendToDevice then
         sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
         setVar(SWITCHSID, "Target", 1, dev)
@@ -339,8 +347,8 @@ function actionSetColor(newVal, dev, sendToDevice)
 		restoreBrightness(dev)
     else
         -- Wnnn, Dnnn (color range)
-        local tempMin = getVarNumeric("MinTemperature", 1600, dev, MYSID)
-        local tempMax = getVarNumeric("MaxTemperature", 6500, dev, MYSID)
+        local tempMin = getVarNumeric(MYSID, "MinTemperature", 1600, dev)
+        local tempMax = getVarNumeric(MYSID, "MaxTemperature", 6500, dev)
         local code, temp = newVal:upper():match("([WD])(%d+)")
         local t
         if code == "W" then
@@ -408,28 +416,30 @@ end
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    L("Plugin starting: %1 - v%2", _PLUGIN_NAME, _PLUGIN_VERSION)
+    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
+	deviceID = devNum
 
-    initVar("Target", "0", devNum, SWITCHSID)
-    initVar("Status", "-1", devNum, SWITCHSID)
+    initVar(SWITCHSID, "Target", "0", devNum)
+    initVar(SWITCHSID, "Status", "-1", devNum)
 
-    initVar("LoadLevelTarget", "0", devNum, DIMMERSID)
-    initVar("LoadLevelStatus", "0", devNum, DIMMERSID)
-    initVar("LoadLevelLast", "100", devNum, DIMMERSID)
-    initVar("TurnOnBeforeDim", "1", devNum, DIMMERSID)
-    initVar("AllowZeroLevel", "0", devNum, DIMMERSID)
+    initVar(DIMMERSID, "LoadLevelTarget", "0", devNum)
+    initVar(DIMMERSID, "LoadLevelStatus", "0", devNum)
+    initVar(DIMMERSID ,"LoadLevelLast", "100", devNum)
+    initVar(DIMMERSID, "TurnOnBeforeDim", "1", devNum)
+    initVar(DIMMERSID, "AllowZeroLevel", "0", devNum)
 
-    initVar("TargetColor", "0=51,1=0,2=0,3=0,4=0", devNum, COLORSID)
-    initVar("CurrentColor", "", devNum, COLORSID)
+    initVar(COLORSID, "TargetColor", "0=51,1=0,2=0,3=0,4=0", devNum)
+    initVar(COLORSID, "CurrentColor", "", devNum)
+	initVar(COLORSID, "SupportedColors", "W,D,R,G,B", devNum)
 
     -- TODO: white mode scale?
-    initVar("MinTemperature", "2000", devNum, MYSID)
-    initVar("MaxTemperature", "6500", devNum, MYSID)
+    initVar(MYSID, "MinTemperature", "2000", devNum)
+    initVar(MYSID, "MaxTemperature", "6500", devNum)
 
-    initVar(COMMANDS_SETPOWER, "http://", devNum, MYSID)
-    initVar(COMMANDS_SETBRIGHTNESS, "http://", devNum, MYSID)
-    initVar(COMMANDS_SETWHITETEMPERATURE, "http://", devNum, MYSID)
-    initVar(COMMANDS_SETRGBCOLOR, "http://", devNum, MYSID)
+    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, devNum)
+    initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, devNum)
+    initVar(MYSID, COMMANDS_SETWHITETEMPERATURE, DEFAULT_ENDPOINT, devNum)
+    initVar(MYSID, COMMANDS_SETRGBCOLOR, DEFAULT_ENDPOINT, devNum)
 
 	-- device categories
     luup.attr_set("category_num", "2", devNum)
@@ -437,6 +447,8 @@ function startPlugin(devNum)
 
 	-- be sure impl file is not messed up
 	luup.attr_set("impl_file", "I_VirtualRGBW1.xml", devNum)
+
+	setVar(HASID, "Configured", 1, devNum)
 
     -- status
     luup.set_failure(0, devNum)

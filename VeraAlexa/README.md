@@ -1,5 +1,5 @@
 # Alexa TTS (Text-To-Speech) plug-in for Vera
-This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control_plain.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo. [More info here](https://github.com/thorsten-gehrig/alexa-remote-control/).
+This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo. [More info here](https://github.com/thorsten-gehrig/alexa-remote-control/).
 
 Right now, only TTS is implemented, but any other commands can be called. This is a work in progress.
 
@@ -44,12 +44,24 @@ Language should be set globally, volume can be omitted (and *DefaultVolume* vari
 You can omit *Repeat* param and 1 will be used as default.
 
 # Use in code: Volume
-- urn:dlna-org:serviceId:DLNAMediaController1: Down/Up/Mute
-- urn:dlna-org:serviceId:DLNAMediaController1: SetVolume (with parameter DesiredVolume and GroupZones)
-- urn:micasaverde-com:serviceId:Volume1: Down/Up/Mute
-- 
+- *urn:dlna-org:serviceId:DLNAMediaController1*: *Down*/*Up*/*Mute*
+- *urn:dlna-org:serviceId:DLNAMediaController1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
+- *urn:micasaverde-com:serviceId:Volume1*: *Down*/*Up*/*Mute*
+
+# Use in code: Routines
+Routines are only supported under OpenLuup at the moment:
+
+*luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+  "RunRoutine",
+  {RoutineName="YourRoutineName", GroupZones="Bedroom"}, 666)*
+
 # OpenLuup/ALTUI
 The device is working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
+# Problems with cookie?
+Sometimes cookie will not get generated. Here's the steps to get it manually:
+https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/156
+
 # Support
-If you need more help, please post it on Vera's forum and tag me (@therealdb).
+If you need more help, please post on Vera's forum and tag me (@therealdb).
+https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/

@@ -1,5 +1,5 @@
-# Virtual HTTP Light Devices plug-in for Vera
-This plug-in intented to provide support to RGB(CCT), Dimmers and Binary Lights that performs their actions using HTTP calls.
+# Virtual HTTP Devices plug-in for Vera
+This plug-in intented to provide support for Heaters, RGB(CCT), Dimmers and Binary Lights that performs their actions using HTTP calls.
 
 This plug-in is suitable to be used with Tasmota, Shelly or similar devices. It could be used to simulate the entire set of options, still using a native interface and native services, with 100% compatibility to external plug-ins or code.
 
@@ -30,6 +30,12 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 ### RGB(CCT) Lights
 - Upnp Device Filename/Device File: D_DimmableRGBLight1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualRGBW1.xml
+
+### Heater
+- Upnp Device Filename/Device File: D_Heate11.xml
+- Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
+
+The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are not supported.
 
 ### Configuration
 All devices are auto-configured. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
@@ -92,6 +98,6 @@ http://veraip:3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasav
 The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
 
 ### Support
-If you need more help, please post it on Vera's forum and tag me (@therealdb).
+If you need more help, please post on Vera's forum and tag me (@therealdb).
 
 https://community.getvera.com/t/virtual-http-light-devices-supporting-rgb-ww-dimmers-switch-and-much-more-tasmota-esp-shelly/209297
