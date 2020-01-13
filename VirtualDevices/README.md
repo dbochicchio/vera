@@ -12,7 +12,8 @@ The files are available via MiOS App Store. Plug-in ID is 9281 if you want to in
 Go to your Vera web interface, then Apps, Install Apps and search for "Virtual HTTP Light Devices (Switch, Dimmer, RGB)". Click Details, then Install.
 
 # Manual Installation
-To install, simply upload this files using Vera's feature (Go to Apps, then Develop Apps, then Luup files and select upload) and then create a new device using these files. App Store is recommended.
+To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
+App Store is recommended.
 
 # Create a new device
 To create a new device, got to Apps, then Develops, then Create device.

@@ -3,7 +3,7 @@ This plug-in uses [Alexa remote control shell script](https://raw.githubusercont
 
 Right now, only TTS is implemented, but any other commands can be called. This is a work in progress.
 
-Tested with success with Vera Firmware 7.30. YMMV.
+Tested with success with Vera Firmware 7.30/7.31. YMMV.
 All the devices are implemented as standard Vera device types.
 
 **This is beta software!**
@@ -12,7 +12,8 @@ If you find problem with the sh script, please refer to its author.
 Due to Vera's OS limited capabilities, only accounts with MFA disabled are supported at the moment.
 
 # Installation
-To install, simply upload this files using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device using these files.
+To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
+
 To create a new device, got to *Apps*, then *Develop Apps*, then *Create device*.
 
 - Device Type: *urn:dlna-org:device:DLNAMediaController:1*
