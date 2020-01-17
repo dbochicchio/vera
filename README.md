@@ -1,10 +1,10 @@
 # Vera
 Various plug-ins for Mios'Vera Platform (Luup engine).
 
-# Virtual HTTP Light Devices plug-in for Vera
-This plug-in represent a virtual device that performs HTTP calls, starting from a standard Vera device.
+# Virtual HTTP Devices plug-in for Vera
+This plug-in represent virtual devices that performs HTTP calls, starting from standard Vera devices.
 This is 100% compatible with Vera UI, mobile apps and act as a standard control in that sense.
-The plug-in covers RGB Lights, Dimmers and Switch Lights.
+The plug-in covers RGB Lights, Dimmers, Switch Lights and Heaters.
 
 [More info](VirtualDevices/)
 
