@@ -24,7 +24,7 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 - Upnp Device Filename/Device File: D_BinaryLight1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
 
-### Dimmers
+### Dimmer
 - Upnp Device Filename/Device File: D_DimmableLight1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
 
