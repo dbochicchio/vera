@@ -33,13 +33,13 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 - Upnp Implementation Filename/Implementation file: I_VirtualRGBW1.xml
 
 ### Heater
-- Upnp Device Filename/Device File: D_Heate11.xml
+- Upnp Device Filename/Device File: D_Heater1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
 
 The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are not supported.
 
 ### Configuration
-All devices are auto-configured. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
+All devices are auto-configuring. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
 To configure a virtual device, just enter its details, then go to Advanced and select Variables tab.
 In order to configure a device, you must specify its remote HTTP endpoints. Those vary depending on the device capabilities, so search for the corresponding API. As with any HTTP device, a static IP is recommended. Check your device or router for instruction on how to do that.
 
