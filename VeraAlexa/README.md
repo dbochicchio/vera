@@ -1,7 +1,9 @@
 # Alexa TTS (Text-To-Speech) plug-in for Vera
 This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo. [More info here](https://github.com/thorsten-gehrig/alexa-remote-control/).
 
-Right now, only TTS is implemented, but any other commands can be called. This is a work in progress.
+Right now, on Vera only TTS is implemented, but any other commands can be called.
+OpenLuup supports routines as well.
+This is a work in progress.
 
 Tested with success with Vera Firmware 7.30/7.31. YMMV.
 All the devices are implemented as standard Vera device types.
@@ -49,7 +51,7 @@ You can omit *Repeat* param and 1 will be used as default.
 - *urn:dlna-org:serviceId:DLNAMediaController1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
 - *urn:micasaverde-com:serviceId:Volume1*: *Down*/*Up*/*Mute*
 
-# Use in code: Routines
+# Use in code: Routines (OpenLuup only)
 Routines are only supported under OpenLuup at the moment:
 
 *luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 

@@ -11,7 +11,7 @@
 		<friendlyName>Alexa</friendlyName>
 		<manufacturer>Amazon</manufacturer>
 		<manufacturerURL>https://github.com/dbochicchio/vera/VeraAlexa</manufacturerURL>
-		<modelDescription>Alexa Home Control</modelDescription>
+		<modelDescription>Sprinkler Controller</modelDescription>
 		<modelName>Amazon</modelName>
 		<modelNumber>1.0</modelNumber>
 		<protocol>cr</protocol>
@@ -22,15 +22,19 @@
 				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
 			</service>
-			<!--<service>
+			<service>
+				<serviceType>urn:schemas-micasaverde-com:service:Sonos:1</serviceType>
+				<serviceId>urn:micasaverde-com:serviceId:Sonos1</serviceId>
+				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
+			</service>
+			<service>
 				<serviceType>urn:micasaverde-com:service:Volume:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>
 				<SCPDURL>S_Volume1.xml</SCPDURL>
-			</service>-->
+			</service>
 		</serviceList>
 		<implementationList>
 			<implementationFile>I_VeraAlexa1.xml</implementationFile>
 		</implementationList>
 	</device>
 </root>
-
