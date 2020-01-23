@@ -28,6 +28,10 @@
 			</allowedValueRange>
 		</stateVariable>
 		<stateVariable sendEvents="no">
+			<name>A_ARG_TYPE_RoutineName</name>
+			<dataType>string</dataType>
+		</stateVariable>
+		<stateVariable sendEvents="no">
 			<name>A_ARG_TYPE_Text</name>
 			<dataType>string</dataType>
 		</stateVariable>
@@ -37,10 +41,6 @@
 		</stateVariable>
 		<stateVariable sendEvents="no">
 			<name>A_ARG_TYPE_Device</name>
-			<dataType>string</dataType>
-		</stateVariable>
-		<stateVariable sendEvents="no">
-			<name>A_ARG_TYPE_RoutineName</name>
 			<dataType>string</dataType>
 		</stateVariable>
 	</serviceStateTable>

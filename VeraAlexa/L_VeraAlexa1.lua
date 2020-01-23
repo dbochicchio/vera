@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.0"
+local _PLUGIN_VERSION = "0.2.1"
 
 local debugMode = false
 local openLuup = false
@@ -236,7 +236,7 @@ local function executeCommand(command, capture)
 end
 
 local function buildCommand(settings)
-	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/alexa_remote_control.sh "
+	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/ " .. SCRIPT_NAME .. " "
 	local username = getVar("Username", "", masterID, MYSID)
 	local password = getVar("Password", "", masterID, MYSID)
 	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
@@ -370,11 +370,11 @@ function startPlugin(devNum)
 
 	-- check for configured flag and for the script
 	local configured = getVarNumeric(HASID, "Configured", 0, masterID)
-	if configured == 0 or not isFile(BIN_PATH .. "/alexa_remote_control.sh") then
+	if configured == 0 or not isFile(BIN_PATH .. "/" .. SCRIPT_NAME) then
 		setupScripts()
 		setVar(HASID, "Configured", 1, devNum)
 	else
-		D("Engine already correctly configured: skipping config")
+		D("Engine correctly configured: skipping config")
 	end
 
 	-- randomizer

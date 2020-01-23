@@ -29,15 +29,6 @@
 				VeraAlexa1.runRoutine(lul_device, lul_settings)
 			</run>
 		</action>
-
-		<action>
-			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
-			<name>RunRoutine</name>
-			<run>
-				VeraAlexa1.runRoutine(lul_device, lul_settings)
-			</run>
-		</action>
-
 		<action>
 			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
 			<name>Say</name>
@@ -47,15 +38,14 @@
 		</action>
 		
 		<action>
-			<serviceId>urn:micasaverde-com:serviceId:Sonos1</serviceId>
+			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 			<name>Say</name>
 			<run>
 				VeraAlexa1.addToQueue(lul_device, lul_settings)
 			</run>
 		</action>
-
 		<action>
-			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
+			<serviceId>urn:micasaverde-com:serviceId:Sonos1</serviceId>
 			<name>Say</name>
 			<run>
 				VeraAlexa1.addToQueue(lul_device, lul_settings)
