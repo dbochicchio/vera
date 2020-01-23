@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.1"
+local _PLUGIN_VERSION = "0.2.2"
 
 local debugMode = false
 local openLuup = false
@@ -236,7 +236,7 @@ local function executeCommand(command, capture)
 end
 
 local function buildCommand(settings)
-	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/ " .. SCRIPT_NAME .. " "
+	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
 	local username = getVar("Username", "", masterID, MYSID)
 	local password = getVar("Password", "", masterID, MYSID)
 	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
