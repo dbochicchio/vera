@@ -36,7 +36,7 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 - Upnp Device Filename/Device File: D_Heater1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
 
-The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are not supported.
+The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are supported, but only as cosmetic feature. No action will be taken when changing setpoints.
 
 ### Configuration
 All devices are auto-configuring. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
