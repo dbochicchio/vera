@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.3.1"
+local _PLUGIN_VERSION = "1.3.2"
 
 local debugMode = false
 
@@ -10,6 +10,7 @@ local SWITCHSID								= "urn:upnp-org:serviceId:SwitchPower1"
 local HVACSID								= "urn:upnp-org:serviceId:HVAC_UserOperatingMode1"
 local HVACSTATESID							= "urn:micasaverde-com:serviceId:HVAC_OperatingState1"
 local TEMPSETPOINTSID						= "urn:upnp-org:serviceId:TemperatureSetpoint1"
+local TEMPSETPOINTSID_HEAT					= "urn:upnp-org:serviceId:TemperatureSetpoint1_Heat"
 local TEMPSENSORSSID						= "urn:upnp-org:serviceId:TemperatureSensor1"
 local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
 
@@ -233,18 +234,42 @@ function actionPower(devNum, state)
     end
 end
 
+function updateSetpointAchieved(devNum)
+	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
+	local temp = getVarNumeric(TEMPSENSORSSID, "CurrentTemperature", 18, devNum)
+	local targetTemp = getVarNumeric(TEMPSETPOINTSID, "CurrentSetpoint", 18, devNum)
+	
+	local achieved = false
+	if modeStatus == "HeatOn" and temp>=targetTemp then
+		achieved = true
+	end
+
+	D('SetPointAchieved(%1, %2, %3, %4)', modeStatus, temp, targetTemp, achieved)
+
+	setVar(TEMPSETPOINTSID, "SetpointAchieved", achieved and "1" or "0", devNum)
+	setVar(TEMPSETPOINTSID_HEAT, "SetpointAchieved", achieved and "1" or "0", devNum)
+end
+
 -- change setpoint -- not really supported at the moment
 function actionSetCurrentSetpoint(devNum, newSetPoint)
 	D("actionSetCurrentSetpoint(%1,%2)", devNum, newSetPoint)
-	deviceMessage(devNum, 'Action not supported', true)
+	--deviceMessage(devNum, 'Action not supported', true)
 
 	-- TODO: change it with an HTTP call?
 	-- restore temp back to the one used by the sensor
-	--local temp = getVar(TEMPSENSORSSID, "CurrentTemperature", 18, devNum)
-	--setVar(TEMPSETPOINTSID, "CurrentSetpoint", temp, devNum)
+	updateSetpointAchieved(devNum)
 
-	-- compatibility with Heat
-	setVar(TEMPSETPOINTSID .. "_Heat", "CurrentSetpoint", newSetPoint, devNum)
+	setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
+		-- compatibility with Heat
+	setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
+
+	-- turn on based on achieved status
+	-- TODO: turn off based on the same?
+	local achieved = getVarNumeric(TEMPSETPOINTSID, "SetpointAchieved", 0, devNum)
+	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
+	if achieved == 0 and modeStatus == "Off" then
+		actionPower(devNum, 1)
+	end
 end
 
 -- set energy mode
@@ -284,9 +309,14 @@ function thermostatWatch(devNum, sid, var, oldVal, newVal)
             -- nothing to todo at the moment
         end
 	elseif sid == TEMPSETPOINTSID then
-		setVar(TEMPSETPOINTSID .. "_Heat", "CurrentSetpoint", temp, devNum)
-    elseif sid == TEMPSETPOINTSID .. "_Heat" then
-		setVar(TEMPSETPOINTSID, "CurrentSetpoint", temp, devNum)
+		if (newVal and "") ~= "" then
+			setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newVal, devNum)
+		end
+		updateSetpointAchieved(devNum)
+    elseif sid == TEMPSETPOINTSID_HEAT then
+		if (newVal and "") ~= "" then
+			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
+		end
     end
 end
 
@@ -304,7 +334,7 @@ function startPlugin(devNum)
 	-- heater init
 	initVar(HVACSID, "ModeStatus", "Off", devNum)
 	initVar(TEMPSETPOINTSID, "CurrentSetpoint", "18", devNum)
-	initVar(TEMPSETPOINTSID .. "_Heat", "CurrentSetpoint", "18", devNum)
+	initVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", "18", devNum)
 	initVar(TEMPSENSORSSID, "CurrentTemperature", "18", devNum)
 
 	-- http calls init
@@ -329,7 +359,7 @@ function startPlugin(devNum)
     luup.variable_watch("thermostatWatch", HVACSID, "ModeTarget", dev)
     luup.variable_watch("thermostatWatch", HVACSID, "ModeStatus", dev)
 	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", dev)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID .. "_Heat", "CurrentSetpoint", dev)
+	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", dev)
 	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", dev)
 
 	setVar(HASID, "Configured", 1, devNum)

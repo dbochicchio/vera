@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.2"
+local _PLUGIN_VERSION = "0.2.3"
 
 local debugMode = false
 local openLuup = false
@@ -193,12 +193,13 @@ function checkQueue(device)
     
 	-- is queue now empty?
 	if #ttsQueue[device] == 0 then
-		D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
-        luup.call_delay("checkQueue", 5, device)
+		D("checkQueue: %1 - queue is empty", device)
+		--D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
+        --luup.call_delay("checkQueue", 5, device)
 		return true
 	end
 
-	D("checkQueue: %1 play next", device)
+	D("checkQueue: %1 - play next", device)
 	-- get the next one
 	sayTTS(device, ttsQueue[device][1])
     
@@ -207,17 +208,17 @@ function checkQueue(device)
 end
 
 function addToQueue(device, settings)
-	L("TTS added to queue for %1", device)
+	L("addToQueue: added to queue for %1", device)
 	if ttsQueue[device] == nil then ttsQueue[device] = {} end
 
 	local startPlaying = #ttsQueue[device] == 0
 
     local howMany = tonumber(settings.Repeat or 1)
-    D('addToQueue - Before: %1', #ttsQueue[device])
+    D('addToQueue: before: %1', #ttsQueue[device])
     for f = 1, howMany do
         table.insert(ttsQueue[device], settings)
     end
-    D('addToQueue - After: %1', #ttsQueue[device])
+    D('addToQueue: after: %1', #ttsQueue[device])
 
 	if (startPlaying) then
 		checkQueue(device)
@@ -228,10 +229,11 @@ local function executeCommand(command, capture)
 	D("Executing command: %1", command)
 
 	-- TODO: try/catch	
-	local r = os.capture(command)
+	local response = os.capture(command)
 
-	D("Response from Alexa.sh: %1", r)
-	
+	setVar(MYSID, "LatestResponse", r, devNum)
+	D("Response from Alexa.sh: %1", response)
+
 	return r
 end
 
