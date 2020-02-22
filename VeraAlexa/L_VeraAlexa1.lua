@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.3"
+local _PLUGIN_VERSION = "0.2.4"
 
 local debugMode = false
 local openLuup = false
@@ -89,7 +89,7 @@ local function L(msg, ...) -- luacheck: ignore 212
     luup.log(str, level)
 end
 
-local function getVarNumeric(name, dflt, dev, sid)
+local function getVarNumeric(sid, name, dflt, dev)
     local s = luup.variable_get(sid, name, dev) or ""
     if s == "" then return dflt end
     s = tonumber(s)
@@ -97,7 +97,7 @@ local function getVarNumeric(name, dflt, dev, sid)
 end
 
 local function D(msg, ...)
-    debugMode = getVarNumeric("DebugMode", 0, masterID, MYSID) == 1
+    debugMode = getVarNumeric(MYSID, "DebugMode", 0, masterID) == 1
 
     if debugMode then
         local t = debug.getinfo(2)
@@ -118,7 +118,7 @@ local function setVar(sid, name, val, dev)
     return false, s
 end
 
-local function getVar(name, dflt, dev, sid)
+local function getVar(sid, name, dflt, dev)
     local s = luup.variable_get(sid, name, dev) or ""
     if s == "" then return dflt end
     return (s == nil) and dflt or s
@@ -239,13 +239,13 @@ end
 
 local function buildCommand(settings)
 	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
-	local username = getVar("Username", "", masterID, MYSID)
-	local password = getVar("Password", "", masterID, MYSID)
-	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
-	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
-	local alexaHost = getVar("AlexaHost", "", masterID, MYSID)
-	local amazonHost = getVar("AmazonHost", "", masterID, MYSID)
-	local language = getVar("Language", "", masterID, MYSID)
+	local username = getVar(MYSID, "Username", "", masterID)
+	local password = getVar(MYSID, "Password", "", masterID) .. getVar("OneTimePassCode", "", masterID)
+	local volume = getVarNumeric(MYSID, "DefaultVolume", "", masterID)
+	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
+	local alexaHost = getVar(MYSID, "AlexaHost", "", masterID)
+	local amazonHost = getVar(MYSID, "AmazonHost", "", masterID)
+	local language = getVar(MYSID, "Language", "", masterID)
 
 	local command = string.format(args, username, password,
 										(settings.Volume or volume),
@@ -254,12 +254,15 @@ local function buildCommand(settings)
 										BIN_PATH, BIN_PATH,
 										(settings.Text or "Test"),
 										(settings.GroupZones or defaultDevice))
+
+	-- reset onetimepass
+	setVar(MYSID, "OneTimePassCode", "", masterID)
 	return command
 end
 
 function sayTTS(device, settings)
-	local volume = getVarNumeric("DefaultVolume", "", masterID, MYSID)
-	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
+	local volume = getVarNumeric(MYSID, "DefaultVolume", "", masterID)
+	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local text = (settings.Text or "Test")
 
 	local command = buildCommand(settings) ..
@@ -278,7 +281,7 @@ function sayTTS(device, settings)
 end
 
 function runRoutine(device, settings)
-	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
+	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 
 	local command = buildCommand(settings) ..
 					string.format(COMMANDS_ROUTINE,
@@ -290,7 +293,7 @@ function runRoutine(device, settings)
 end
 
 function setVolume(volume, device, settings)
-	local defaultDevice = getVar("DefaultEcho", "", masterID, MYSID)
+	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local echoDevice = (settings.GroupZones or defaultDevice)
 
 	local finalVolume = settings.DesiredVolume or 0
@@ -364,6 +367,9 @@ function startPlugin(devNum)
 	initVar(MYSID, "Language", "en-us", devNum)
 	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", devNum)
 	initVar(MYSID, "AmazonHost", "amazon.com", devNum)
+
+	-- OTP
+	initVar(MYSID, "OneTimePassCode", "", masterID)
 
 	-- categories
 	if luup.attr_get("category_num", devNum) == nil then

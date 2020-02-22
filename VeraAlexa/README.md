@@ -65,6 +65,12 @@ The device is working and supported under OpenLuup and ALTUI. In this case, if y
 Sometimes cookie will not get generated. Here's the steps to get it manually:
 https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/156
 
+# One Time Passcode
+Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew a cookie when dealing with 2-factory authentication (2FA).
+Amazon will send you a One Time Passwcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
+
+http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
+
 # Support
 If you need more help, please post on Vera's forum and tag me (@therealdb).
 https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/
