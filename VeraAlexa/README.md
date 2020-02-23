@@ -1,4 +1,4 @@
-# Alexa TTS (Text-To-Speech) plug-in for Vera
+﻿# Alexa TTS (Text-To-Speech) plug-in for Vera
 This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo. [More info here](https://github.com/thorsten-gehrig/alexa-remote-control/).
 
 Right now, on Vera only TTS is implemented, but any other commands can be called.
@@ -29,6 +29,8 @@ Please set Username, Password, DefaultEcho, DefaultVolume, Language and AlexaHos
 Please refer to the original script instructions for more info about the correct values.
 
 # Use in code: TTS
+If you don't opt it for announcements (see later), only single devices are supported. You can't sync TTS on multiple devices without announcements.
+
 Standard DLNAMediaController1:
 
 `luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
@@ -37,13 +39,13 @@ Standard DLNAMediaController1:
 
 Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!).
 
-Using Sonos plug-in endpoints:
+Sonos plug-in endpoints:
 
 `luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)`
 
-Using native endpoint:
+Proprietary endpoint:
 
 `luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "Say",
@@ -85,6 +87,20 @@ Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew 
 Amazon will send you a One Time Passwcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
 
 http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
+
+# Announcements with TTS (OpenLuup only)
+
+You have to specifically enable announcements. This will give you the ability to have sync'ed TTS on groups (ie: Everywhere or your own defined groups).
+As per Amazon docs, Alexa excludes that device from announcement delivery:
+    * Announcements are disabled. (To enable or disable announcements in the Alexa app, go to  **Settings → Device Settings →  *device_name*  → Communications → Announcements**.)
+    * The device is actively in a call or drop-in.
+    * The device is in Do Not Disturb mode.
+
+*Manage Announcements in the Alexa mobile app. Go to*   **Settings > Device Settings >**   ***device_name***   **>Communications > Announcements**   *to configure settings for each Alexa device in your household.*
+
+Announcements are opt-in and could be configured with these variables:
+- UseAnnoucements: set to 1 to enable, 0 to disable
+- DefaultBreak: default to 3 secs, it's the time between repeated announcements
 
 # More code examples
 
