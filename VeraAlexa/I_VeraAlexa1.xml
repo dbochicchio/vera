@@ -24,6 +24,13 @@
 
 		<action>
 			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>RunCommand</name>
+			<run>
+				VeraAlexa1.runCommand(lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
 			<name>RunRoutine</name>
 			<run>
 				VeraAlexa1.runRoutine(lul_device, lul_settings)

@@ -31,17 +31,23 @@ Please refer to the original script instructions for more info about the correct
 # Use in code: TTS
 Standard DLNAMediaController1:
 
-*luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
+`luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
   "Say",
-  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)*
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)`
 
 Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!).
 
 Using Sonos plug-in endpoints:
 
-*luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
+`luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
   "Say",
-  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)*
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)`
+
+Using native endpoint:
+
+`luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+  "Say",
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)`
 
 Language should be set globally, volume can be omitted (and *DefaultVolume* variable will be used instead), device can be omitted (and *DefaultEcho* will be used instead).
 You can omit *Repeat* param and 1 will be used as default.
@@ -54,9 +60,18 @@ You can omit *Repeat* param and 1 will be used as default.
 # Use in code: Routines (OpenLuup only)
 Routines are only supported under OpenLuup at the moment:
 
-*luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+`luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "RunRoutine",
-  {RoutineName="YourRoutineName", GroupZones="Bedroom"}, 666)*
+  {RoutineName="YourRoutineName", GroupZones="Bedroom"}, 666)`
+
+# Use in code: Generic commands (OpenLuup only)
+Commands are only supported under OpenLuup at the moment:
+
+`luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+  "RunCommand",
+  {Command="-e weather -d 'Bedroom'"}, 666)`
+
+Please see https://github.com/thorsten-gehrig/alexa-remote-control/blob/master/alexa_remote_control.sh for a complete list of supported commands.
 
 # OpenLuup/ALTUI
 The device is working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
@@ -70,6 +85,25 @@ Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew 
 Amazon will send you a One Time Passwcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
 
 http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
+
+# More code examples
+
+`-- routines
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunRoutine", {RoutineName="cane", GroupZone="Bedroom"}, 666)
+
+-- any command you want
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunCommand", {Command="-e weather -d 'Bedroom'"}, 666)
+
+-- sounds - see https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunCommand", {Command="-e sound:amzn_sfx_trumpet_bugle_04 -d 'Bedroom'"}, 666) -- sounds only work on device, no groups
+
+-- different voices, SSML - see https://developer.amazon.com/en-US/docs/alexa/custom-skills/speech-synthesis-markup-language-ssml-reference.html
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Kendra"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Matthew"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Amy"><lang xml:lang="en-GB">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+
+-- different language
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Carla"><lang xml:lang="it-IT">Ciao da Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)`
 
 # Support
 If you need more help, please post on Vera's forum and tag me (@therealdb).

@@ -46,6 +46,16 @@
 	</serviceStateTable>
 	<actionList>
 		<action>
+			<name>RunCommand</name>
+			<argumentList>
+				<argument>
+					<name>Command</name>
+					<direction>in</direction>
+					<relatedStateVariable>A_ARG_TYPE_RoutineName</relatedStateVariable>
+				</argument>
+			</argumentList>
+		</action>
+		<action>
 			<name>RunRoutine</name>
 			<argumentList>
 				<argument>

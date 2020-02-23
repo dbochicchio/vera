@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.4"
+local _PLUGIN_VERSION = "0.2.5"
 
 local debugMode = false
 local openLuup = false
@@ -18,7 +18,7 @@ local MYSID                                 = "urn:bochicchio-com:serviceId:Vera
 local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
 
 -- COMMANDS
-local COMMANDS_SPEAK					    = "-e speak:%s -d %q"
+local COMMANDS_SPEAK					    = "-e speak:'%s' -d %q"
 local COMMANDS_ROUTINE					    = "-e automation:\"%s\" -d %q"
 local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
 local COMMANDS_GETVOLUME			        = "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
@@ -194,12 +194,11 @@ function checkQueue(device)
 	-- is queue now empty?
 	if #ttsQueue[device] == 0 then
 		D("checkQueue: %1 - queue is empty", device)
-		--D("checkQueue: %1 no more items in queue, new check in 5 secs", device)
-        --luup.call_delay("checkQueue", 5, device)
 		return true
 	end
 
 	D("checkQueue: %1 - play next", device)
+
 	-- get the next one
 	sayTTS(device, ttsQueue[device][1])
     
@@ -211,13 +210,31 @@ function addToQueue(device, settings)
 	L("addToQueue: added to queue for %1", device)
 	if ttsQueue[device] == nil then ttsQueue[device] = {} end
 
+	local defaultBreak = getVar(MYSID, "DefaultBreak", 3, masterID)
+
 	local startPlaying = #ttsQueue[device] == 0
 
     local howMany = tonumber(settings.Repeat or 1)
     D('addToQueue: before: %1', #ttsQueue[device])
-    for f = 1, howMany do
-        table.insert(ttsQueue[device], settings)
-    end
+
+	local useAnnoucements = getVarNumeric(MYSID, "UseAnnoucements", 0, masterID)
+	if useAnnoucements == 1 then
+		-- no need to repeat, just concatenate
+		local text = ""
+		for f = 1, howMany do
+			text = text .. "<s>" .. settings.Text .. '</s><break time="' .. (f == howMany and 0 or defaultBreak) .. 's" />'
+		end
+		settings.Text = text
+
+		table.insert(ttsQueue[device], settings)
+	else
+		-- format text and concatenate
+		settings.Text = string.gsub(settings.Text, "%s+", "_")
+
+	    for f = 1, howMany do
+			table.insert(ttsQueue[device], settings)
+		end
+	end
     D('addToQueue: after: %1', #ttsQueue[device])
 
 	if (startPlaying) then
@@ -238,19 +255,21 @@ local function executeCommand(command, capture)
 end
 
 local function buildCommand(settings)
-	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
+	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export USE_ANNOUNCEMENT_FOR_SPEAK=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
 	local username = getVar(MYSID, "Username", "", masterID)
-	local password = getVar(MYSID, "Password", "", masterID) .. getVar("OneTimePassCode", "", masterID)
-	local volume = getVarNumeric(MYSID, "DefaultVolume", "", masterID)
+	local password = getVar(MYSID, "Password", "", masterID) .. getVar(MYSID, "OneTimePassCode", "", masterID)
+	local volume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local alexaHost = getVar(MYSID, "AlexaHost", "", masterID)
 	local amazonHost = getVar(MYSID, "AmazonHost", "", masterID)
 	local language = getVar(MYSID, "Language", "", masterID)
+	local useAnnoucements = getVarNumeric(MYSID, "UseAnnoucements", 0, masterID)
 
 	local command = string.format(args, username, password,
 										(settings.Volume or volume),
 										(settings.Language or language), (settings.Language or language),
 										amazonHost, alexaHost,
+										useAnnoucements,
 										BIN_PATH, BIN_PATH,
 										(settings.Text or "Test"),
 										(settings.GroupZones or defaultDevice))
@@ -267,15 +286,23 @@ function sayTTS(device, settings)
 
 	local command = buildCommand(settings) ..
 					string.format(COMMANDS_SPEAK,
-                                    string.gsub(text, "%s+", "_"),
+                                    text,
 									(settings.GroupZones or defaultDevice))
 
 
 	executeCommand(command)
 	D("Executing command [TTS]: %1", command)
 
-	-- wait for x seconds based on string length
-	local timeout =  0.062 * string.len(text) + 1
+	-- wait for the next one in queue
+	local defaultBreak = getVar(MYSID, "DefaultBreak", 3, masterID)
+	local useAnnoucements = getVarNumeric(MYSID, "UseAnnoucements", 0, masterID)
+	local timeout = defaultBreak -- in seconds
+
+	if useAnnoucements == 0 then
+		-- wait for x seconds based on string length
+		local timeout =  0.062 * string.len(text) + 1
+	end
+
 	luup.call_delay("checkQueue", timeout, device)
     D("Queue will be checked again in %1 secs", timeout)
 end
@@ -290,6 +317,14 @@ function runRoutine(device, settings)
 
 	executeCommand(command)
 	D("Executing command [runRoutine]: %1", command)
+end
+
+function runCommand(device, settings)
+	local command = buildCommand(settings) ..
+					settings.Command
+
+	executeCommand(command)
+	D("Executing command [runCommand]: %1", command)
 end
 
 function setVolume(volume, device, settings)
@@ -368,14 +403,26 @@ function startPlugin(devNum)
 	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", devNum)
 	initVar(MYSID, "AmazonHost", "amazon.com", devNum)
 
+	-- annoucments
+	initVar(MYSID, "UseAnnoucements", "0", devNum)
+	initVar(MYSID, "DefaultBreak", 3, devNum)
+
 	-- OTP
-	initVar(MYSID, "OneTimePassCode", "", masterID)
+	initVar(MYSID, "OneTimePassCode", "", devNum)
 
 	-- categories
 	if luup.attr_get("category_num", devNum) == nil then
 	    luup.attr_set("category_num", "15", devNum)			-- A/V
 	end
 
+	-- currentversion
+	local vers = initVar(MYSID, "CurrentVersion", "0", devNum)
+	if vers ~= _PLUGIN_VERSION then
+		-- new version, let's reload the script again
+		setVar(HASID, "Configured", 0, devNum)
+		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, devNum)
+	end
+	
 	-- check for configured flag and for the script
 	local configured = getVarNumeric(HASID, "Configured", 0, masterID)
 	if configured == 0 or not isFile(BIN_PATH .. "/" .. SCRIPT_NAME) then

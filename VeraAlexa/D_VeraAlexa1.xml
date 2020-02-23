@@ -23,6 +23,11 @@
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
 			</service>
 			<service>
+				<serviceType>urn:schemas-bochicchio-com:serviceId:VeraAlexa1</serviceType>
+				<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
+			</service>
+			<service>
 				<serviceType>urn:schemas-micasaverde-com:service:Sonos:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Sonos1</serviceId>
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
