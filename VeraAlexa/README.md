@@ -33,7 +33,8 @@ If you don't opt it for announcements (see later), only single devices are suppo
 
 Standard DLNAMediaController1:
 
-```luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
+```
+luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
@@ -42,14 +43,16 @@ Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZone
 
 Sonos plug-in endpoints:
 
-```luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
+```
+luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
 
 Proprietary endpoint:
 
-```luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+```
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
@@ -65,7 +68,8 @@ You can omit *Repeat* param and 1 will be used as default.
 # Use in code: Routines (OpenLuup only)
 Routines are only supported under OpenLuup at the moment:
 
-```luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+```
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "RunRoutine",
   {RoutineName="YourRoutineName", GroupZones="Bedroom"}, 666)
 ```
@@ -73,7 +77,8 @@ Routines are only supported under OpenLuup at the moment:
 # Use in code: Generic commands (OpenLuup only)
 Commands are only supported under OpenLuup at the moment:
 
-```luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
+```
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "RunCommand",
   {Command="-e weather -d 'Bedroom'"}, 666)
 ```
@@ -109,22 +114,37 @@ Announcements are opt-in and could be configured with these variables:
 
 # More code examples
 
-```-- routines
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunRoutine", {RoutineName="cane", GroupZone="Bedroom"}, 666)
+```
+-- routines
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
+   "RunRoutine",
+   {RoutineName="cane", GroupZone="Bedroom"}, 666)
 
 -- any command you want
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunCommand", {Command="-e weather -d 'Bedroom'"}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
+   "RunCommand",
+   {Command="-e weather -d 'Bedroom'"}, 666)
 
 -- sounds - see https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "RunCommand", {Command="-e sound:amzn_sfx_trumpet_bugle_04 -d 'Bedroom'"}, 666) -- sounds only work on device, no groups
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
+   "RunCommand",
+   {Command="-e sound:amzn_sfx_trumpet_bugle_04 -d 'Bedroom'"}, 666) -- sounds only work on device, no groups
 
 -- different voices, SSML - see https://developer.amazon.com/en-US/docs/alexa/custom-skills/speech-synthesis-markup-language-ssml-reference.html
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Kendra"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Matthew"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Amy"><lang xml:lang="en-GB">Hello from Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
+   {Text='<voice name="Kendra"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>',
+    Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
+   {Text='<voice name="Matthew"><lang xml:lang="en-US">Hello from Vera Alexa</lang></voice>',
+    Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
+   {Text='<voice name="Amy"><lang xml:lang="en-GB">Hello from Vera Alexa</lang></voice>',
+    Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 
 -- different language
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say", {Text='<voice name="Carla"><lang xml:lang="it-IT">Ciao da Vera Alexa</lang></voice>', Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
+   {Text='<voice name="Carla"><lang xml:lang="it-IT">Ciao da Vera Alexa</lang></voice>',
+   Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
 
 # Support
