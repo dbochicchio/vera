@@ -704,7 +704,7 @@ function startPlugin(devNum)
 
     L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
-	-- decect OpenLuup
+	-- detect OpenLuup
 	for k,v in pairs(luup.devices) do
 		if v.device_type == "openLuup" then
 			openLuup = true

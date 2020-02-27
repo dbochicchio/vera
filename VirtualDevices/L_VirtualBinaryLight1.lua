@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.3.1"
+local _PLUGIN_VERSION = "1.3.2"
 
 local debugMode = false
 local MYSID									= "urn:bochicchio-com:serviceId:VirtualBinaryLight1"

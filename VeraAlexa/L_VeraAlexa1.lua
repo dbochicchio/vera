@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.5"
+local _PLUGIN_VERSION = "0.2.6"
 
 local debugMode = false
 local openLuup = false
@@ -11,6 +11,7 @@ local TASK_ERROR = 2
 local TASK_ERROR_PERM = -2
 local TASK_SUCCESS = 4
 local TASK_BUSY = 1
+
 local masterID = -1
 
 -- SIDs
@@ -157,6 +158,13 @@ local function initVar(sid, name, dflt, dev)
         return tostring(dflt)
     end
     return currVal
+end
+
+function deviceMessage(devID, message, error, timeout)
+	local status = error and 2 or 4
+	timeout = timeout or 15
+	D("deviceMessage(%1,%2,%3,%4)", devID, message, error, timeout)
+	luup.device_message(devID, status, message, timeout, _PLUGIN_NAME)
 end
 
 function os.capture(cmd, raw)
@@ -380,47 +388,58 @@ function startPlugin(devNum)
 
     L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
-	-- decect OpenLuup
+	-- detect OpenLuup
 	for k,v in pairs(luup.devices) do
 		if v.device_type == "openLuup" then
 			openLuup = true
 			D("Running on OpenLuup: %1", openLuup)
 
 			BIN_PATH = "/etc/cmh-ludl/VeraAlexa"
-			SCRIPT_NAME = "alexa_remote_control.sh"
+		end
+	end
+
+	-- jq installed?
+	if isFile("/usr/bin/jq") then
+		SCRIPT_NAME = "alexa_remote_control.sh"
+
+		deviceMessage(masterID, "Clearing...", TASK_SUCCESS, 0)
+	else
+		-- notify the user to install jq
+		if openLuup then
+			deviceMessage(masterID, 'Please install jq package.', true, 0)
 		end
 	end
 
 	-- init default vars
-    initVar(MYSID, "DebugMode", 0, devNum)
-	initVar(MYSID, "Username", "youraccount@amazon.com", devNum)
-    initVar(MYSID, "Password", "password", devNum)
-	initVar(MYSID, "DefaultEcho", "Bedroom", devNum)
-	initVar(MYSID, "DefaultVolume", 50, devNum)
+    initVar(MYSID, "DebugMode", 0, masterID)
+	initVar(MYSID, "Username", "youraccount@amazon.com", masterID)
+    initVar(MYSID, "Password", "password", masterID)
+	initVar(MYSID, "DefaultEcho", "Bedroom", masterID)
+	initVar(MYSID, "DefaultVolume", 50, masterID)
 
 	-- init default values for US
-	initVar(MYSID, "Language", "en-us", devNum)
-	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", devNum)
-	initVar(MYSID, "AmazonHost", "amazon.com", devNum)
+	initVar(MYSID, "Language", "en-us", masterID)
+	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", masterID)
+	initVar(MYSID, "AmazonHost", "amazon.com", masterID)
 
 	-- annoucments
-	initVar(MYSID, "UseAnnoucements", "0", devNum)
-	initVar(MYSID, "DefaultBreak", 3, devNum)
+	initVar(MYSID, "UseAnnoucements", "0", masterID)
+	initVar(MYSID, "DefaultBreak", 3, masterID)
 
 	-- OTP
-	initVar(MYSID, "OneTimePassCode", "", devNum)
+	initVar(MYSID, "OneTimePassCode", "", masterID)
 
 	-- categories
-	if luup.attr_get("category_num", devNum) == nil then
-	    luup.attr_set("category_num", "15", devNum)			-- A/V
+	if luup.attr_get("category_num", masterID) == nil then
+	    luup.attr_set("category_num", "15", masterID)			-- A/V
 	end
 
 	-- currentversion
-	local vers = initVar(MYSID, "CurrentVersion", "0", devNum)
+	local vers = initVar(MYSID, "CurrentVersion", "0", masterID)
 	if vers ~= _PLUGIN_VERSION then
 		-- new version, let's reload the script again
-		setVar(HASID, "Configured", 0, devNum)
-		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, devNum)
+		setVar(HASID, "Configured", 0, masterID)
+		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, masterID)
 	end
 	
 	-- check for configured flag and for the script
@@ -438,6 +457,6 @@ function startPlugin(devNum)
     checkQueue(masterID)
 
     -- status
-    luup.set_failure(0, devNum)
+    luup.set_failure(0, masterID)
     return true, "Ready", _PLUGIN_NAME
 end

@@ -303,7 +303,7 @@ function thermostatWatch(devNum, sid, var, oldVal, newVal)
 
 	if sid == HVACSID then
         if var == "ModeTarget" then
-			if newVal == "" then newVal = "Off" end -- AltUI+Openloop bug
+			if newVal == "" then newVal = "Off" end -- AltUI+Openluup bug
 			actionPower(devNum, (newVal == "Off" and "0" or "1"))
         elseif var == "ModeStatus" then
             -- nothing to todo at the moment
