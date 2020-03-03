@@ -305,7 +305,7 @@ local function discovery()
 					D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
 
 					local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
-					local oldName =	luup.attr_get("name")
+					local oldName =	luup.attr_get("name", childID)
 					if overrideName and oldName ~= zoneName then
 						luup.attr_set('name', zoneName, childID)
 						setVar(MYSID, "UpdateNameFromController", 1, childID)
@@ -374,7 +374,7 @@ local function discovery()
 					D("Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
 
 					local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
-					local oldName =	luup.attr_get("name")
+					local oldName =	luup.attr_get("name", childID)
 					if overrideName and oldName ~= programName then
 						luup.attr_set('name', programName, childID)
 						setVar(MYSID, "UpdateNameFromController", 1, childID)

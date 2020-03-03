@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.6"
+local _PLUGIN_VERSION = "0.2.7"
 
 local debugMode = false
 local openLuup = false
@@ -22,7 +22,7 @@ local HASID                                 = "urn:micasaverde-com:serviceId:HaD
 local COMMANDS_SPEAK					    = "-e speak:'%s' -d %q"
 local COMMANDS_ROUTINE					    = "-e automation:\"%s\" -d %q"
 local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
-local COMMANDS_GETVOLUME			        = "-q -d %q | grep -E '\"volume\":([0-9])*' -o | grep -E -o '([0-9])*'"
+local COMMANDS_GETVOLUME			        = "-q -d %q | sed ':a;N;$!ba;s/\\n/ /g' | grep 'volume' | sed -r 's/^.*\"volume\":\\s*([0-9]+)[^0-9]*$/\\1/g'"
 local BIN_PATH                              = "/storage/alexa"
 local SCRIPT_NAME							= "alexa_remote_control_plain.sh"
 
@@ -250,16 +250,14 @@ function addToQueue(device, settings)
 	end
 end
 
-local function executeCommand(command, capture)
-	D("Executing command: %1", command)
-
+local function executeCommand(command)
 	-- TODO: try/catch	
 	local response = os.capture(command)
 
-	setVar(MYSID, "LatestResponse", r, devNum)
+	setVar(MYSID, "LatestResponse", response, masterID)
 	D("Response from Alexa.sh: %1", response)
 
-	return r
+	return response
 end
 
 local function buildCommand(settings)
@@ -292,14 +290,15 @@ function sayTTS(device, settings)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local text = (settings.Text or "Test")
 
-	local command = buildCommand(settings) ..
-					string.format(COMMANDS_SPEAK,
+	local args = string.format(COMMANDS_SPEAK,
                                     text,
 									(settings.GroupZones or defaultDevice))
 
-
+	local command = buildCommand(settings) .. args
+					
+	D("Executing command [TTS]: %1", args)
 	executeCommand(command)
-	D("Executing command [TTS]: %1", command)
+	
 
 	-- wait for the next one in queue
 	local defaultBreak = getVar(MYSID, "DefaultBreak", 3, masterID)
@@ -318,24 +317,25 @@ end
 function runRoutine(device, settings)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 
-	local command = buildCommand(settings) ..
-					string.format(COMMANDS_ROUTINE,
-                                    settings.RoutineName,
+	local args = string.format(COMMANDS_ROUTINE,
+									settings.RoutineName,
 									(settings.GroupZones or defaultDevice))
+	local command = buildCommand(settings) .. args
 
+	D("Executing command [runRoutine]: %1", args)
 	executeCommand(command)
-	D("Executing command [runRoutine]: %1", command)
 end
 
 function runCommand(device, settings)
 	local command = buildCommand(settings) ..
 					settings.Command
 
+	D("Executing command [runCommand]: %1", settings.Command)
 	executeCommand(command)
-	D("Executing command [runCommand]: %1", command)
 end
 
 function setVolume(volume, device, settings)
+	local defaultVolume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local echoDevice = (settings.GroupZones or defaultDevice)
 
@@ -346,8 +346,10 @@ function setVolume(volume, device, settings)
 		-- alexa doesn't support +1/-1, so we must first get current volume
 		local command = buildCommand(settings) ..
 								string.format(COMMANDS_GETVOLUME, echoDevice)
-		local r = executeCommand(command)
-		local currentVolume = tonumber(r)
+		local response = executeCommand(command)
+		response = string.gsub(response, '"','')
+		local currentVolume = tonumber(response or defaultVolume)
+
 		D("Volume for %2: %1", currentVolume, echoDevice)
 		finalVolume = currentVolume + (volume * 10)
 	end
@@ -383,6 +385,11 @@ function setupScripts()
 	D("Setup completed")
 end
 
+function reset()
+	os.execute("rm -r " .. BIN_PATH .. "/*")
+	setupScripts()
+end
+
 function startPlugin(devNum)
     masterID = devNum
 
@@ -392,22 +399,26 @@ function startPlugin(devNum)
 	for k,v in pairs(luup.devices) do
 		if v.device_type == "openLuup" then
 			openLuup = true
-			D("Running on OpenLuup: %1", openLuup)
-
 			BIN_PATH = "/etc/cmh-ludl/VeraAlexa"
 		end
 	end
+
+	D("OpenLuup: %1", openLuup)
 
 	-- jq installed?
 	if isFile("/usr/bin/jq") then
 		SCRIPT_NAME = "alexa_remote_control.sh"
 
 		deviceMessage(masterID, "Clearing...", TASK_SUCCESS, 0)
+
+		D("jq: true")
 	else
 		-- notify the user to install jq
 		if openLuup then
 			deviceMessage(masterID, 'Please install jq package.', true, 0)
 		end
+
+		D("jq: false")
 	end
 
 	-- init default vars

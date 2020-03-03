@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.3.2"
+local _PLUGIN_VERSION = "1.3.3"
 
 local debugMode = false
 local MYSID									= "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
@@ -276,59 +276,56 @@ end
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
+    L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
 	deviceID = devNum
 
-	local deviceType = luup.attr_get('device_file')
+	local deviceType = luup.attr_get("device_file", deviceID)
 
-    initVar(SWITCHSID, "Target", "0", devNum)
-    initVar(SWITCHSID, "Status", "-1", devNum)
+    initVar(SWITCHSID, "Target", "0", deviceID)
+    initVar(SWITCHSID, "Status", "-1", deviceID)
 
 	-- dimmer specific code
 	if deviceType == "D_DimmableLight1.xml" then
-		initVar(DIMMERSID, "LoadLevelTarget", "0", devNum)
-		initVar(DIMMERSID, "LoadLevelStatus", "0", devNum)
-		initVar(DIMMERSID, "LoadLevelLast", "100", devNum)
-		initVar(DIMMERSID, "TurnOnBeforeDim", "1", devNum)
-		initVar(DIMMERSID, "AllowZeroLevel", "0", devNum)
+		initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
+		initVar(DIMMERSID, "LoadLevelStatus", "0", deviceID)
+		initVar(DIMMERSID, "LoadLevelLast", "100", deviceID)
+		initVar(DIMMERSID, "TurnOnBeforeDim", "1", deviceID)
+		initVar(DIMMERSID, "AllowZeroLevel", "0", deviceID)
 
-		initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, devNum)
+		initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, deviceID)
 	else
-		setVar(DIMMERSID, "LoadLevelTarget", nil, devNum)
-		setVar(DIMMERSID, "LoadLevelTarget", nil, devNum)
-		setVar(DIMMERSID, "LoadLevelStatus", nil, devNum)
-		setVar(DIMMERSID, "LoadLevelLast", nil, devNum)
-		setVar(DIMMERSID, "TurnOnBeforeDim", nil, devNum)
-		setVar(DIMMERSID, "AllowZeroLevel", nil, devNum)
-		setVar(MYSID, COMMANDS_SETBRIGHTNESS, nil, devNum)
+		setVar(DIMMERSID, "LoadLevelTarget", nil, deviceID)
+		setVar(DIMMERSID, "LoadLevelTarget", nil, deviceID)
+		setVar(DIMMERSID, "LoadLevelStatus", nil, deviceID)
+		setVar(DIMMERSID, "LoadLevelLast", nil, deviceID)
+		setVar(DIMMERSID, "TurnOnBeforeDim", nil, deviceID)
+		setVar(DIMMERSID, "AllowZeroLevel", nil, deviceID)
+		setVar(MYSID, COMMANDS_SETBRIGHTNESS, nil, deviceID)
 	end
 
 	-- normal switch
-    local commandPower = initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, devNum)
-	initVar(MYSID, COMMANDS_TOGGLE, DEFAULT_ENDPOINT, devNum)
+    local commandPower = initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, deviceID)
+	initVar(MYSID, COMMANDS_TOGGLE, DEFAULT_ENDPOINT, deviceID)
 
 	-- upgrade code
-	initVar(MYSID, COMMANDS_SETPOWEROFF, commandPower, devNum)
+	initVar(MYSID, COMMANDS_SETPOWEROFF, commandPower, deviceID)
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("category_num") == nil then
+	if luup.attr_get("category_num", deviceID) == nil then
 		local category_num = 3
 		if deviceType == "D_DimmableLight1.xml" then category_num = 2 end -- dimmer
 
-		luup.attr_set("category_num", category_num, devNum) -- switch
+		luup.attr_set("category_num", category_num, deviceID) -- switch
 	end
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("subcategory_num") == nil then
-		luup.attr_set("subcategory_num", "3", devNum) -- in wall switch
+	if luup.attr_get("subcategory_num", deviceID) == nil then
+		luup.attr_set("subcategory_num", "3", deviceID) -- in wall switch
 	end
 
-	-- be sure impl file is not messed up
-	luup.attr_set("impl_file", "I_VirtualBinaryLight1.xml", devNum)
-
-	setVar(HASID, "Configured", 1, devNum)
+	setVar(HASID, "Configured", 1, deviceID)
 
     -- status
-    luup.set_failure(0, devNum)
+    luup.set_failure(0, deviceID)
     return true, "Ready", _PLUGIN_NAME
 end

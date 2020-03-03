@@ -46,31 +46,6 @@
 	</serviceStateTable>
 	<actionList>
 		<action>
-			<name>RunCommand</name>
-			<argumentList>
-				<argument>
-					<name>Command</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_RoutineName</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>RunRoutine</name>
-			<argumentList>
-				<argument>
-					<name>RoutineName</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_RoutineName</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
 			<name>Say</name>
 			<argumentList>
 				<argument>
@@ -97,61 +72,6 @@
 					<name>Repeat</name>
 					<direction>in</direction>
 					<relatedStateVariable>A_ARG_TYPE_Repeat</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>Up</name>
-			<argumentList>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>Down</name>
-			<argumentList>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>Mute</name>
-			<argumentList>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>SetVolume</name>
-			<argumentList>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
-				</argument>
-				<argument>
-					<name>DesiredVolume</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Volume</relatedStateVariable>
-				</argument>
-			</argumentList>
-		</action>
-		<action>
-			<name>Reset</name>
-			<argumentList>
-				<argument>
-					<name>GroupZones</name>
-					<direction>in</direction>
-					<relatedStateVariable>A_ARG_TYPE_Device</relatedStateVariable>
 				</argument>
 			</argumentList>
 		</action>

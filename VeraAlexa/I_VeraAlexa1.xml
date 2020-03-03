@@ -43,7 +43,42 @@
 				VeraAlexa1.addToQueue(lul_device, lul_settings)
 			</run>
 		</action>
-		
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>Down</name>
+			<run>
+				VeraAlexa1.setVolume(-1, lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>Up</name>
+			<run>
+				VeraAlexa1.setVolume(1, lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>Mute</name>
+			<run>
+				VeraAlexa1.setVolume(0, lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>SetVolume</name>
+			<run>
+				VeraAlexa1.setVolume(0, lul_device, lul_settings)
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
+			<name>Reset</name>
+			<run>
+				VeraAlexa1.reset()
+			</run>
+		</action>
+
 		<action>
 			<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 			<name>Say</name>

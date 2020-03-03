@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.3.2"
+local _PLUGIN_VERSION = "1.3.3"
 
 local debugMode = false
 
@@ -416,41 +416,38 @@ end
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
 function startPlugin(devNum)
-    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
+	L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
 	deviceID = devNum
 
-    initVar(SWITCHSID, "Target", "0", devNum)
-    initVar(SWITCHSID, "Status", "-1", devNum)
+    initVar(SWITCHSID, "Target", "0", deviceID)
+    initVar(SWITCHSID, "Status", "-1", deviceID)
 
-    initVar(DIMMERSID, "LoadLevelTarget", "0", devNum)
-    initVar(DIMMERSID, "LoadLevelStatus", "0", devNum)
-    initVar(DIMMERSID ,"LoadLevelLast", "100", devNum)
-    initVar(DIMMERSID, "TurnOnBeforeDim", "1", devNum)
-    initVar(DIMMERSID, "AllowZeroLevel", "0", devNum)
+    initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
+    initVar(DIMMERSID, "LoadLevelStatus", "0", deviceID)
+    initVar(DIMMERSID ,"LoadLevelLast", "100", deviceID)
+    initVar(DIMMERSID, "TurnOnBeforeDim", "1", deviceID)
+    initVar(DIMMERSID, "AllowZeroLevel", "0", deviceID)
 
-    initVar(COLORSID, "TargetColor", "0=51,1=0,2=0,3=0,4=0", devNum)
-    initVar(COLORSID, "CurrentColor", "", devNum)
-	initVar(COLORSID, "SupportedColors", "W,D,R,G,B", devNum)
+    initVar(COLORSID, "TargetColor", "0=51,1=0,2=0,3=0,4=0", deviceID)
+    initVar(COLORSID, "CurrentColor", "", deviceID)
+	initVar(COLORSID, "SupportedColors", "W,D,R,G,B", deviceID)
 
     -- TODO: white mode scale?
-    initVar(MYSID, "MinTemperature", "2000", devNum)
-    initVar(MYSID, "MaxTemperature", "6500", devNum)
+    initVar(MYSID, "MinTemperature", "2000", deviceID)
+    initVar(MYSID, "MaxTemperature", "6500", deviceID)
 
-    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, devNum)
-    initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, devNum)
-    initVar(MYSID, COMMANDS_SETWHITETEMPERATURE, DEFAULT_ENDPOINT, devNum)
-    initVar(MYSID, COMMANDS_SETRGBCOLOR, DEFAULT_ENDPOINT, devNum)
+    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, deviceID)
+    initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, deviceID)
+    initVar(MYSID, COMMANDS_SETWHITETEMPERATURE, DEFAULT_ENDPOINT, deviceID)
+    initVar(MYSID, COMMANDS_SETRGBCOLOR, DEFAULT_ENDPOINT, deviceID)
 
 	-- device categories
-    luup.attr_set("category_num", "2", devNum)
-    luup.attr_set("subcategory_num", "4", devNum)
+    luup.attr_set("category_num", "2", deviceID)
+    luup.attr_set("subcategory_num", "4", deviceID)
 
-	-- be sure impl file is not messed up
-	luup.attr_set("impl_file", "I_VirtualRGBW1.xml", devNum)
-
-	setVar(HASID, "Configured", 1, devNum)
+	setVar(HASID, "Configured", 1, deviceID)
 
     -- status
-    luup.set_failure(0, devNum)
+    luup.set_failure(0, deviceID)
     return true, "Ready", _PLUGIN_NAME
 end

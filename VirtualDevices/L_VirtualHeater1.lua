@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.3.2"
+local _PLUGIN_VERSION = "1.3.3"
 
 local debugMode = false
 
@@ -321,50 +321,47 @@ function thermostatWatch(devNum, sid, var, oldVal, newVal)
 end
 
 function startPlugin(devNum)
-    L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
+	L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
 	deviceID = devNum
 
 	-- generic init
-	initVar(MYSID, "DebugMode", 0, devNum)
+	initVar(MYSID, "DebugMode", 0, deviceID)
 
 	-- switch init
-    initVar(SWITCHSID, "Target", "0", devNum)
-    initVar(SWITCHSID, "Status", "-1", devNum)
+    initVar(SWITCHSID, "Target", "0", deviceID)
+    initVar(SWITCHSID, "Status", "-1", deviceID)
 
 	-- heater init
-	initVar(HVACSID, "ModeStatus", "Off", devNum)
-	initVar(TEMPSETPOINTSID, "CurrentSetpoint", "18", devNum)
-	initVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", "18", devNum)
-	initVar(TEMPSENSORSSID, "CurrentTemperature", "18", devNum)
+	initVar(HVACSID, "ModeStatus", "Off", deviceID)
+	initVar(TEMPSETPOINTSID, "CurrentSetpoint", "18", deviceID)
+	initVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", "18", deviceID)
+	initVar(TEMPSENSORSSID, "CurrentTemperature", "18", deviceID)
 
 	-- http calls init
-    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, devNum)
-	initVar(MYSID, COMMANDS_SETPOWEROFF, DEFAULT_ENDPOINT, devNum)
+    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, deviceID)
+	initVar(MYSID, COMMANDS_SETPOWEROFF, DEFAULT_ENDPOINT, deviceID)
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("category_num") == nil then
+	if luup.attr_get("category_num", deviceID) == nil then
 		local category_num = 5
-		luup.attr_set("category_num", category_num, devNum) -- heater
+		luup.attr_set("category_num", category_num, deviceID) -- heater
 	end
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("subcategory_num") == nil then
-		luup.attr_set("subcategory_num", "2", devNum) -- heater
+	if luup.attr_get("subcategory_num", deviceID) == nil then
+		luup.attr_set("subcategory_num", "2", deviceID) -- heater
 	end
-
-	-- be sure impl file is not messed up
-	luup.attr_set("impl_file", "I_VirtualHeater1.xml", devNum)
 
 	-- watches
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeTarget", dev)
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeStatus", dev)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", dev)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", dev)
-	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", dev)
+    luup.variable_watch("thermostatWatch", HVACSID, "ModeTarget", deviceID)
+    luup.variable_watch("thermostatWatch", HVACSID, "ModeStatus", deviceID)
+	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", deviceID)
+	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", deviceID)
+	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", deviceID)
 
-	setVar(HASID, "Configured", 1, devNum)
+	setVar(HASID, "Configured", 1, deviceID)
 
     -- status
-    luup.set_failure(0, devNum)
+    luup.set_failure(0, deviceID)
     return true, "Ready", _PLUGIN_NAME
 end
