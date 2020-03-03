@@ -65,6 +65,16 @@ You can omit *Repeat* param and 1 will be used as default.
 - *urn:dlna-org:serviceId:DLNAMediaController1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
 - *urn:micasaverde-com:serviceId:Volume1*: *Down*/*Up*/*Mute*
 
+All these actions are also offered on the proprietary service *urn:bochicchio-com:serviceId:VeraAlexa1*.
+
+# Use in code: Reset
+If you need to force a reset, just use this code:
+
+```
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "Reset", {}, 666)
+```
+This will reset cookie, device list and download the bash script again.
+
 # Use in code: Routines (OpenLuup only)
 Routines are only supported under OpenLuup at the moment:
 
@@ -99,7 +109,6 @@ Amazon will send you a One Time Passwcode via e-mail or SMS. You can use tasker/
 http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
 
 # Announcements with TTS (OpenLuup only)
-
 You have to specifically enable announcements. This will give you the ability to have sync'ed TTS on groups (ie: Everywhere or your own defined groups).
 As per Amazon docs, Alexa excludes that device from announcement delivery:
 - Announcements are disabled. (To enable or disable announcements in the Alexa app, go to  **Settings → Device Settings →  *device_name*  → Communications → Announcements**.)
@@ -113,7 +122,6 @@ Announcements are opt-in and could be configured with these variables:
 - DefaultBreak: default to 3 secs, it's the time between repeated announcements
 
 # More code examples
-
 ```
 -- routines
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
