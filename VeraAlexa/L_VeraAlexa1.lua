@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.7"
+local _PLUGIN_VERSION = "0.2.8"
 
 local debugMode = false
 local openLuup = false
@@ -237,7 +237,7 @@ function addToQueue(device, settings)
 		table.insert(ttsQueue[device], settings)
 	else
 		-- format text and concatenate
-		settings.Text = string.gsub(settings.Text, "%s+", "_")
+		--settings.Text = string.gsub(settings.Text, "%s+", "_")
 
 	    for f = 1, howMany do
 			table.insert(ttsQueue[device], settings)
