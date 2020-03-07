@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.3.3"
+local _PLUGIN_VERSION = "1.3.5"
 
 local debugMode = false
 
@@ -205,7 +205,7 @@ local function sendDeviceCommand(cmd, params, devNum)
     local pstr = table.concat(pv, ",")
 
     local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
-    if (cmd ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
+    if (cmdUrl ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
 
     return false
 end
@@ -419,6 +419,8 @@ function startPlugin(devNum)
 	L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
 	deviceID = devNum
 
+	-- generic init
+	initVar(MYSID, "DebugMode", 0, deviceID)
     initVar(SWITCHSID, "Target", "0", deviceID)
     initVar(SWITCHSID, "Status", "-1", deviceID)
 
@@ -442,9 +444,11 @@ function startPlugin(devNum)
     initVar(MYSID, COMMANDS_SETRGBCOLOR, DEFAULT_ENDPOINT, deviceID)
 
 	-- device categories
-    luup.attr_set("category_num", "2", deviceID)
-    luup.attr_set("subcategory_num", "4", deviceID)
-
+	local category_num = luup.attr_get("category_num", deviceID) or 0
+	if category_num == 0 then
+		luup.attr_set("category_num", "2", deviceID)
+		luup.attr_set("subcategory_num", "4", deviceID)
+	end
 	setVar(HASID, "Configured", 1, deviceID)
 
     -- status

@@ -1,5 +1,5 @@
 # Virtual HTTP Devices plug-in for Vera
-This plug-in intented to provide support for Heaters, RGB(CCT), Dimmers and Binary Lights that performs their actions using HTTP calls.
+This plug-in intented to provide support for Heaters, Window Covers/Roller Shutters/Blinds, RGB(CCT), Dimmers and Binary Lights that performs their actions using HTTP calls.
 
 This plug-in is suitable to be used with Tasmota, Shelly or similar devices. It could be used to simulate the entire set of options, still using a native interface and native services, with 100% compatibility to external plug-ins or code.
 
@@ -28,13 +28,17 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 - Upnp Device Filename/Device File: D_DimmableLight1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
 
-### RGB(CCT) Lights
+### RGB(CCT) Light
 - Upnp Device Filename/Device File: D_DimmableRGBLight1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualRGBW1.xml
 
 ### Heater
 - Upnp Device Filename/Device File: D_Heater1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
+
+### Window Covers/Roller Shutters/Blinds
+- Upnp Device Filename/Device File: D_WindowCovering1.xml
+- Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
 
 The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are supported, but only as cosmetic feature. No action will be taken when changing setpoints.
 
@@ -68,7 +72,7 @@ For Shelly: http://mydevice/relay/0?turn=toggle
 
 No params required.
 
-#### Dimming (Dimmers, RGB Lights)
+#### Dimming (Dimmers, RGB Lights, Window Covers/Roller Shutters/Blinds)
 Set *SetBrightnessURL* variable to the corresponding HTTP call.
 
 For a custom device: http://mydevice/brigthness?v=%s
@@ -88,6 +92,13 @@ Set *SetWhiteTemperatureURL* variable to the corresponding HTTP call.
 For a custom device: http://mydevice/setwhitemode?v=%s
 
 The %s parameter will be replace with temperature (from 2000 to 6500 k).
+
+#### Stop (Window Covers/Roller Shutters/Blinds)
+Set *SetMoveStopURL* variable to the corresponding HTTP call.
+
+For a custom device: http://mydevice/stop
+
+No parameters are sent.
 
 ### Remarks
 This integration is useful when the Vera system is the primary and only controller for your remote lights.

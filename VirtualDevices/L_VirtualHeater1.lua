@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.3.3"
+local _PLUGIN_VERSION = "1.3.5"
 
 local debugMode = false
 
@@ -206,7 +206,7 @@ local function sendDeviceCommand(cmd, params, devNum)
     local pstr = table.concat(pv, ",")
 
     local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
-    if (cmd ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
+    if (cmdUrl ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
 
     return false
 end
@@ -326,8 +326,6 @@ function startPlugin(devNum)
 
 	-- generic init
 	initVar(MYSID, "DebugMode", 0, deviceID)
-
-	-- switch init
     initVar(SWITCHSID, "Target", "0", deviceID)
     initVar(SWITCHSID, "Status", "-1", deviceID)
 
@@ -348,7 +346,8 @@ function startPlugin(devNum)
 	end
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("subcategory_num", deviceID) == nil then
+	local category_num = luup.attr_get("category_num", deviceID) or 0
+	if category_num == 0 then
 		luup.attr_set("subcategory_num", "2", deviceID) -- heater
 	end
 

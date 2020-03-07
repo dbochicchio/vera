@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.8"
+local _PLUGIN_VERSION = "0.2.9"
 
 local debugMode = false
 local openLuup = false
@@ -409,7 +409,7 @@ function startPlugin(devNum)
 	if isFile("/usr/bin/jq") then
 		SCRIPT_NAME = "alexa_remote_control.sh"
 
-		deviceMessage(masterID, "Clearing...", TASK_SUCCESS, 0)
+		deviceMessage(masterID, "Clearing...", false, 5)
 
 		D("jq: true")
 	else

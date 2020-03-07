@@ -33,6 +33,30 @@
 			</run>
 		</action>
 		<action>
+			<serviceId>urn:upnp-org:serviceId:WindowCovering1</serviceId>
+			<name>Up</name>
+			<run>
+				VirtualBinaryLight1.actionBrightness(100,lul_device)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:WindowCovering1</serviceId>
+			<name>Down</name>
+			<run>
+				VirtualBinaryLight1.actionBrightness(0,lul_device)
+				return 4,0
+			</run>
+		</action>
+		<action>
+			<serviceId>urn:upnp-org:serviceId:WindowCovering1</serviceId>
+			<name>Stop</name>
+			<run>
+				VirtualBinaryLight1.actionStop(lul_device)
+				return 4,0
+			</run>
+		</action>
+		<action>
 			<serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
 			<name>ToggleState</name>
 			<run>

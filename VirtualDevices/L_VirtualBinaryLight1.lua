@@ -1,21 +1,23 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.3.3"
+local _PLUGIN_VERSION = "1.3.5"
 
 local debugMode = false
-local MYSID									= "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
+local deviceID = -1
 
+local MYSID									= "urn:bochicchio-com:serviceId:VirtualBinaryLight1"
 local SWITCHSID								= "urn:upnp-org:serviceId:SwitchPower1"
 local DIMMERSID								= "urn:upnp-org:serviceId:Dimming1"
 local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
+local BLINDSID								= "urn:upnp-org:serviceId:WindowCovering1"
 
 local COMMANDS_SETPOWER						= "SetPowerURL"
 local COMMANDS_SETPOWEROFF					= "SetPowerOffURL"
 local COMMANDS_SETBRIGHTNESS				= "SetBrightnessURL"
 local COMMANDS_TOGGLE						= "SetToggleURL"
+local COMMANDS_MOVESTOP						= "SetMoveStopURL"
 local DEFAULT_ENDPOINT						= "http://"
-local deviceID = -1
 
 local function dump(t, seen)
     if t == nil then return "nil" end
@@ -194,8 +196,8 @@ local function sendDeviceCommand(cmd, params, devNum)
     end
     local pstr = table.concat(pv, ",")
 
-    local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
-    if (cmd ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
+    local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum) or DEFAULT_ENDPOINT
+    if (cmdUrl ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
 
     return false
 end
@@ -222,14 +224,15 @@ function actionPower(state, dev)
 
 	-- dimmer or not?
 	local isDimmer = deviceType == "D_DimmableLight1.xml"
+	local isBlind = deviceType == "D_WindowCovering1.xml"
 
     setVar(SWITCHSID, "Target", state and "1" or "0", dev)
     setVar(SWITCHSID, "Status", state and "1" or "0", dev)
 
-    -- UI needs LoadLevelTarget/Status to comport with state according to Vera's rules.
+    -- UI needs LoadLevelTarget/Status to conform with state according to Vera's rules.
     if not state then
 			sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, "off", dev)
-			if isDimmer then
+			if isDimmer or isBlind then
 				setVar(DIMMERSID, "LoadLevelTarget", 0, dev)
 				setVar(DIMMERSID, "LoadLevelStatus", 0, dev)
 			end
@@ -242,8 +245,13 @@ function actionPower(state, dev)
 end
 
 function actionBrightness(newVal, dev)
+	-- dimmer or not?
+	local isDimmer = deviceType == "D_DimmableLight1.xml"
+	local isBlind = deviceType == "D_WindowCovering1.xml"
+
     -- Dimming level change
-    newVal = tonumber(newVal) or 100
+    newVal = math.floor(tonumber(newVal or 100))
+	
     if newVal < 0 then
         newVal = 0
     elseif newVal > 100 then
@@ -251,12 +259,15 @@ function actionBrightness(newVal, dev)
     end -- range
     if newVal > 0 then
         -- Level > 0, if light is off, turn it on.
-        local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
-        if status == 0 then
-            sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
-            setVar(SWITCHSID, "Target", 1, dev)
-            setVar(SWITCHSID, "Status", 1, dev)
-        end
+		if isDimmer then
+			local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
+			if status == 0 then
+				sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
+				setVar(SWITCHSID, "Target", 1, dev)
+				setVar(SWITCHSID, "Status", 1, dev)
+			end
+		end
+
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, dev)
     elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, dev) ~= 0 then
         -- Level 0 allowed as on state, just go with it.
@@ -275,17 +286,23 @@ end
 -- Toggle state
 function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
 
+-- stop for blinds
+function actionStop(devNum) sendDeviceCommand(COMMANDS_MOVESTOP, nil, devNum) end
+
 function startPlugin(devNum)
     L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
 	deviceID = devNum
 
 	local deviceType = luup.attr_get("device_file", deviceID)
 
+	-- generic init
+	initVar(MYSID, "DebugMode", 0, deviceID)
     initVar(SWITCHSID, "Target", "0", deviceID)
     initVar(SWITCHSID, "Status", "-1", deviceID)
 
-	-- dimmer specific code
+	-- device specific code
 	if deviceType == "D_DimmableLight1.xml" then
+		-- dimmer
 		initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
 		initVar(DIMMERSID, "LoadLevelStatus", "0", deviceID)
 		initVar(DIMMERSID, "LoadLevelLast", "100", deviceID)
@@ -293,7 +310,17 @@ function startPlugin(devNum)
 		initVar(DIMMERSID, "AllowZeroLevel", "0", deviceID)
 
 		initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, deviceID)
+	elseif deviceType == "D_WindowCovering1.xml" then
+		-- roller shutter
+		initVar(DIMMERSID, "AllowZeroLevel", "1", deviceID)
+		initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
+		initVar(DIMMERSID, "LoadLevelStatus", "0", deviceID)
+		initVar(DIMMERSID, "LoadLevelLast", "100", deviceID)
+
+		initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, deviceID)
+		initVar(MYSID, COMMANDS_MOVESTOP, DEFAULT_ENDPOINT, deviceID)
 	else
+		-- binary light
 		setVar(DIMMERSID, "LoadLevelTarget", nil, deviceID)
 		setVar(DIMMERSID, "LoadLevelTarget", nil, deviceID)
 		setVar(DIMMERSID, "LoadLevelStatus", nil, deviceID)
@@ -310,16 +337,18 @@ function startPlugin(devNum)
 	-- upgrade code
 	initVar(MYSID, COMMANDS_SETPOWEROFF, commandPower, deviceID)
 
+	local category_num = luup.attr_get("category_num", deviceID) or 0
 	-- set at first run, then make it configurable
-	if luup.attr_get("category_num", deviceID) == nil then
-		local category_num = 3
+	if category_num == 0 then
+		category_num = 3
 		if deviceType == "D_DimmableLight1.xml" then category_num = 2 end -- dimmer
+		if deviceType == "D_WindowCovering1.xml" then category_num = 8 end -- blind
 
 		luup.attr_set("category_num", category_num, deviceID) -- switch
 	end
 
 	-- set at first run, then make it configurable
-	if luup.attr_get("subcategory_num", deviceID) == nil then
+	if tonumber(category_num or "-1") == 3 and luup.attr_get("subcategory_num", deviceID) == nil then
 		luup.attr_set("subcategory_num", "3", deviceID) -- in wall switch
 	end
 
