@@ -1,7 +1,7 @@
-module("L_OpenSprinkler1", package.seeall)
+module("L_VeraOpenSprinkler1", package.seeall)
 
-local _PLUGIN_NAME = "OpenSprinkler"
-local _PLUGIN_VERSION = "0.99.0"
+local _PLUGIN_NAME = "VeraOpenSprinkler"
+local _PLUGIN_VERSION = "1.0.0"
 
 local debugMode = false
 local masterID = -1
@@ -728,7 +728,7 @@ function startPlugin(devNum)
 	    luup.attr_set("subcategory_num", "7", devNum)		-- Water Valve
 	end
 
-	luup.attr_set("device_file", "D_OpenSprinkler1.xml", devNum) -- fix it at startup
+	luup.attr_set("device_file", "D_VeraOpenSprinkler1.xml", devNum) -- fix it at startup
 
 	-- IP configuration
 	local ip = luup.attr_get("ip", devNum)

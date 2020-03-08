@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.9"
+local _PLUGIN_VERSION = "0.2.10"
 
 local debugMode = false
 local openLuup = false
@@ -278,7 +278,7 @@ local function buildCommand(settings)
 										useAnnoucements,
 										BIN_PATH, BIN_PATH,
 										(settings.Text or "Test"),
-										(settings.GroupZones or defaultDevice))
+										(settings.GroupZones or settings.GroupDevices or defaultDevice))
 
 	-- reset onetimepass
 	setVar(MYSID, "OneTimePassCode", "", masterID)
@@ -292,7 +292,7 @@ function sayTTS(device, settings)
 
 	local args = string.format(COMMANDS_SPEAK,
                                     text,
-									(settings.GroupZones or defaultDevice))
+									(settings.GroupZones or settings.GroupDevices or defaultDevice))
 
 	local command = buildCommand(settings) .. args
 					
@@ -319,7 +319,7 @@ function runRoutine(device, settings)
 
 	local args = string.format(COMMANDS_ROUTINE,
 									settings.RoutineName,
-									(settings.GroupZones or defaultDevice))
+									(settings.GroupZones or settings.GroupDevices or defaultDevice))
 	local command = buildCommand(settings) .. args
 
 	D("Executing command [runRoutine]: %1", args)
@@ -337,7 +337,7 @@ end
 function setVolume(volume, device, settings)
 	local defaultVolume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
-	local echoDevice = (settings.GroupZones or defaultDevice)
+	local echoDevice = (settings.GroupZones or settings.GroupDevices or defaultDevice)
 
 	local finalVolume = settings.DesiredVolume or 0
 	D("Volume requested for %2: %1", finalVolume, echoDevice)

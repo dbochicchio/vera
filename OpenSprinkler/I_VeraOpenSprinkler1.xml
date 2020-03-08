@@ -3,20 +3,20 @@
 	<functions>
 		function startupPlugin(devNum)
 		luup.log("OpenSprinkler Controller Plug-In starting...")
-		OpenSprinkler1 = require("L_OpenSprinkler1")
-		return OpenSprinkler1.startPlugin(devNum)
+		VeraOpenSprinkler1 = require("L_VeraOpenSprinkler1")
+		return VeraOpenSprinkler1.startPlugin(devNum)
 		end
 
 		function updateStatus()
-		OpenSprinkler1.updateStatus()
+		VeraOpenSprinkler1.updateStatus()
 		end
 
 		function clearMessage()
-		OpenSprinkler1.clearMessage()
+		VeraOpenSprinkler1.clearMessage()
 		end
 
 		function actionPowerChild(dev_id, service, variable, oldValue, newValue)
-		OpenSprinkler1.actionPower(newValue, dev_id)
+		VeraOpenSprinkler1.actionPower(newValue, dev_id)
 		end
 	</functions>
 	<startup>startupPlugin</startup>
@@ -25,7 +25,7 @@
 			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
 			<name>SetTarget</name>
 			<run>
-				OpenSprinkler1.actionPower(lul_settings.newTargetValue, lul_device)
+				VeraOpenSprinkler1.actionPower(lul_settings.newTargetValue, lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -33,7 +33,7 @@
 			<serviceId>urn:bochicchio-com:serviceId:OpenSprinkler1</serviceId>
 			<name>SetRainDelay</name>
 			<run>
-				OpenSprinkler1.actionSetRainDelay(lul_settings.newRainDelay, lul_device)
+				VeraOpenSprinkler1.actionSetRainDelay(lul_settings.newRainDelay, lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -41,7 +41,7 @@
 			<serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
 			<name>SetLoadLevelTarget</name>
 			<run>
-				OpenSprinkler1.actionDimming(lul_settings.newLoadlevelTarget,lul_device)
+				VeraOpenSprinkler1.actionDimming(lul_settings.newLoadlevelTarget,lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -49,7 +49,7 @@
 			<serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
 			<name>ToggleState</name>
 			<run>
-				OpenSprinkler1.actionToggleState(lul_device)
+				VeraOpenSprinkler1.actionToggleState(lul_device)
 				return 4,0
 			</run>
 		</action>

@@ -9,22 +9,25 @@ It is able to discrovery and control:
 
 All the devices are implemented as standard Vera device types.
 
-**This is beta software!**
-
 In particular, I need help with
 - controller with a lot of zones (16/32+)
 - controller with master valve
 - controller with rain sensors
 - support for scenes
 
-# Installation
+# Installation via MiOS App Store
+The files are available via MiOS App Store. Plug-in ID is 9301 if you want to install it manually.
+Go to your Vera web interface, then Apps, Install Apps and search for "Vera OpenSprinkler Plug-in". Click Details, then Install.
+
+# Manual Installation
+
 To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
 To create a new device, got to *Apps*, then *Develops*, then *Create device*.
 Every time you want to map a new controller, just repeat this operation.
 
 - Device Type: *urn:schemas-upnp-org:device:BinaryLight:1*
-- Upnp Device Filename/Device File: *D_OpenSprinkler1.xml*
-- Upnp Implementation Filename/Implementation file: *I_OpenSprinkler1.xml*
+- Upnp Device Filename/Device File: *D_VeraOpenSprinkler1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VeraOpenSprinkler1.xml*
 - IP address: the OpenSprinkler Controller internal IP address (host name not supported)
 - Parent Device: none
 
