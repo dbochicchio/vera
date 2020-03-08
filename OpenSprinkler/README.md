@@ -20,7 +20,6 @@ The files are available via MiOS App Store. Plug-in ID is 9301 if you want to in
 Go to your Vera web interface, then Apps, Install Apps and search for "Vera OpenSprinkler Plug-in". Click Details, then Install.
 
 # Manual Installation
-
 To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
 To create a new device, got to *Apps*, then *Develops*, then *Create device*.
 Every time you want to map a new controller, just repeat this operation.
@@ -36,7 +35,7 @@ Password is set to "opendoor" (in MD5 format), but you need to change it (see ne
 Reload your Vera's engine and wait for you zones and programs to appear.
 
 # Password
-OpenSprinkler use MD5 when passing password. Ensure to use a tool (such as http://www.md5.cz/) and save the generated password in the corresponding variable.
+OpenSprinkler use MD5-hashed passwords. Ensure to use a tool (such as http://www.md5.cz/) and save the generated password in the corresponding variable.
 
 # Variables
 ## For master device
