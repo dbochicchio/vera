@@ -1,8 +1,8 @@
-﻿# Alexa TTS (Text-To-Speech) plug-in for Vera
+﻿# Alexa plug-in for Vera
 This plug-in uses [Alexa remote control shell script](https://raw.githubusercontent.com/thorsten-gehrig/alexa-remote-control/master/alexa_remote_control.sh) to execute TTS (Text-To-Speech) commands against your Amazon Echo. [More info here](https://github.com/thorsten-gehrig/alexa-remote-control/).
 
-Right now, on Vera only TTS is implemented, but any other commands can be called.
-OpenLuup supports routines as well.
+On Vera only TTS is implemented.
+OpenLuup supports routines, announcements and advanced commands. Please install *jq* package before proceding.
 This is a work in progress.
 
 Tested with success with Vera Firmware 7.30/7.31. YMMV.
