@@ -73,10 +73,11 @@ If you need to force a reset, just use this code:
 ```
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "Reset", {}, 666)
 ```
+
 This will reset cookie, device list and download the bash script again.
 
 # Use in code: Routines (OpenLuup only)
-Routines are only supported under OpenLuup at the moment:
+Routines are only supported under OpenLuup (with jq package installed) at the moment:
 
 ```
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
@@ -85,7 +86,7 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
 ```
 
 # Use in code: Generic commands (OpenLuup only)
-Commands are only supported under OpenLuup at the moment:
+Commands are only supported under OpenLuup (with jq package installed) at the moment:
 
 ```
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
@@ -104,13 +105,13 @@ https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-ve
 
 # One Time Passcode
 Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew a cookie when dealing with 2-factory authentication (2FA).
-Amazon will send you a One Time Passwcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
+Amazon will send you a One Time Passcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
 
 http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
 
 # Announcements with TTS (OpenLuup only)
 You have to specifically enable announcements. This will give you the ability to have sync'ed TTS on groups (ie: Everywhere or your own defined groups).
-As per Amazon docs, Alexa excludes that device from announcement delivery:
+As per Amazon docs, Alexa excludes that device from announcement delivery if:
 - Announcements are disabled. (To enable or disable announcements in the Alexa app, go to  **Settings → Device Settings →  *device_name*  → Communications → Announcements**.)
 - The device is actively in a call or drop-in.
 - The device is in Do Not Disturb mode.
@@ -119,7 +120,7 @@ As per Amazon docs, Alexa excludes that device from announcement delivery:
 
 Announcements are opt-in and could be configured with these variables:
 - UseAnnoucements: set to 1 to enable, 0 to disable
-- DefaultBreak: default to 3 secs, it's the time between repeated announcements
+- DefaultBreak: default to 3 secs - it's the time between repeated announcements
 
 # More code examples
 ```
@@ -128,7 +129,7 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
    "RunRoutine",
    {RoutineName="cane", GroupZone="Bedroom"}, 666)
 
--- any command you want
+-- any command you want: play weather on Bedroom device
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
    "RunCommand",
    {Command="-e weather -d 'Bedroom'"}, 666)
@@ -149,7 +150,7 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
    {Text='<voice name="Amy"><lang xml:lang="en-GB">Hello from Vera Alexa</lang></voice>',
     Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 
--- different language
+-- different language using a custom voice
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
    {Text='<voice name="Carla"><lang xml:lang="it-IT">Ciao da Vera Alexa</lang></voice>',
    Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
