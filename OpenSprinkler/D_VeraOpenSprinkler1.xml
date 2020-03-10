@@ -41,11 +41,11 @@
 			<service>
 				<serviceType>urn:schemas-bochicchio-com:serviceId:OpenSprinkler1</serviceType>
 				<serviceId>urn:bochicchio-com:serviceId:OpenSprinkler1</serviceId>
-				<SCPDURL>S_OpenSprinkler1.xml</SCPDURL>
+				<SCPDURL>S_VeraOpenSprinkler1.xml</SCPDURL>
 			</service>
 		</serviceList>
 		<implementationList>
-			<implementationFile>I_OpenSprinkler1.xml</implementationFile>
+			<implementationFile>I_VeraOpenSprinkler1.xml</implementationFile>
 		</implementationList>
 	</device>
 </root>
