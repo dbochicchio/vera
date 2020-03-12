@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.3.5"
+local _PLUGIN_VERSION = "1.3.6"
 
 local debugMode = false
 
@@ -175,7 +175,7 @@ function httpGet(url)
 		sink = ltn12.sink.table(response_body)
 	}
 
-	L("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+	D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
 	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))
