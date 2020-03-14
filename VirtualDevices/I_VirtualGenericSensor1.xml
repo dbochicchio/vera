@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<implementation>
+	<functions>
+		function startupPlugin(devNum)
+		luup.log("VirtualGenericSensor starting...")
+		VirtualGenericSensor1 = require("L_VirtualGenericSensor1")
+		sensorWatch = VirtualGenericSensor1.sensorWatch
+		return VirtualGenericSensor1.startPlugin(devNum)
+		end
+	</functions>
+	<startup>startupPlugin</startup>
+	<actionList>
+		<action>
+			<serviceId>urn:micasaverde-com:serviceId:SecuritySensor1</serviceId>
+			<name>SetArmed</name>
+			<run>
+				VirtualGenericSensor1.actionArmed(lul_device, lul_settings.newArmedValue)
+				return 4,0
+			</run>
+		</action>
+	</actionList>
+</implementation>

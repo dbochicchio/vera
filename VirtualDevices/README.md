@@ -1,5 +1,5 @@
 # Virtual HTTP Devices plug-in for Vera
-This plug-in intented to provide support for Heaters, Window Covers/Roller Shutters/Blinds, RGB(CCT), Dimmers and Binary Lights that performs their actions using HTTP calls.
+This plug-in intented to provide support for Heaters, Window Covers/Roller Shutters/Blinds, RGB(CCT), Dimmers and Binary Lights, and Sensors (Door, Leak, Motion, Smoke, CO, Glass Break, Freeze or Binary) that performs their actions using HTTP calls.
 
 This plug-in is suitable to be used with Tasmota, Shelly or similar devices. It could be used to simulate the entire set of options, still using a native interface and native services, with 100% compatibility to external plug-ins or code.
 
@@ -35,6 +35,18 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 ### Heater
 - Upnp Device Filename/Device File: D_Heater1.xml
 - Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
+
+## Sensors (Door, Leak, Motion, Smoke, CO, Glass Break, Freeze or Binary Sensor)
+- Upnp Device Filename/Device File:
+  - D_DoorSensor1.xml - door sensor
+  - D_LeakSensor1.xml - leak sensor
+  - D_MotionSensor1.xml - motion sensor
+  - D_SmokeSensor1.xml - smoke sensor
+  - ? - glass break sensor
+  - D_FreezeSensor1.xm - freeze sensor
+  - ? - Binary Sensor
+- Upnp Implementation Filename/Implementation file: L_VirtualGenericSensor1.xml
+Subcategory number must be changed manually http://wiki.micasaverde.com/index.php/Luup_Device_Categories
 
 ### Window Covers/Roller Shutters/Blinds
 - Upnp Device Filename/Device File: D_WindowCovering1.xml

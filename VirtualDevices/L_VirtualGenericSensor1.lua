@@ -1,21 +1,16 @@
-module("L_VirtualHeater1", package.seeall)
+module("L_VirtualGenericSensor1", package.seeall)
 
-local _PLUGIN_NAME = "VirtualHeater"
+local _PLUGIN_NAME = "VirtualGenericSensor"
 local _PLUGIN_VERSION = "1.4.0"
 
 local debugMode = false
 
-local MYSID									= "urn:bochicchio-com:serviceId:VirtualHeater1"
-local SWITCHSID								= "urn:upnp-org:serviceId:SwitchPower1"
-local HVACSID								= "urn:upnp-org:serviceId:HVAC_UserOperatingMode1"
-local HVACSTATESID							= "urn:micasaverde-com:serviceId:HVAC_OperatingState1"
-local TEMPSETPOINTSID						= "urn:upnp-org:serviceId:TemperatureSetpoint1"
-local TEMPSETPOINTSID_HEAT					= "urn:upnp-org:serviceId:TemperatureSetpoint1_Heat"
-local TEMPSENSORSSID						= "urn:upnp-org:serviceId:TemperatureSensor1"
+local MYSID									= "urn:bochicchio-com:serviceId:VirtualGenericSensor1"
+local SECURITYSID							= "urn:micasaverde-com:serviceId:SecuritySensor1"
 local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
 
-local COMMANDS_SETPOWER						= "SetPowerURL"
-local COMMANDS_SETPOWEROFF					= "SetPowerOffURL"
+local COMMANDS_TRIPPED						= "SetTrippedURL"
+local COMMANDS_ARMED						= "SetArmedURL"
 local DEFAULT_ENDPOINT						= "http://"
 
 local deviceID = -1
@@ -212,113 +207,37 @@ local function sendDeviceCommand(cmd, params, devNum)
 end
 
 -- turn on/off compatibility
-function actionPower(devNum, state)
-    -- Switch on/off
-    if type(state) == "string" then
-        state = (tonumber(state) or 0) ~= 0
-    elseif type(state) == "number" then
-        state = state ~= 0
-    end
+function actionArmed(devNum, state)
+	state = tostring(state or "0")
 
-	-- update variables
-    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
-    setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
-	setVar(HVACSID, "ModeStatus", state and "HeatOn" or "Off", devNum)
-	setVar(HVACSTATESID, "ModeState", state and "Heating" or "Idle", devNum)
+	setVar(SECURITYSID, "Armed", state, devNum)
+	-- no need to update ArmedTripped, it will be automatic
 
 	-- send command
-    if not state then
-		sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, "off", devNum)
-    else
-        sendDeviceCommand(COMMANDS_SETPOWER, "on", devNum)
-    end
+	sendDeviceCommand(COMMANDS_ARMED, state, devNum)
 end
 
-function updateSetpointAchieved(devNum)
-	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
-	local temp = getVarNumeric(TEMPSENSORSSID, "CurrentTemperature", 18, devNum)
-	local targetTemp = getVarNumeric(TEMPSETPOINTSID, "CurrentSetpoint", 18, devNum)
-	
-	local achieved = false
-	if modeStatus == "HeatOn" and temp>=targetTemp then
-		achieved = true
-	end
+function actionTripped(devNum, state)
+	-- no need to update LastTrip, it will be automatic
 
-	D('SetPointAchieved(%1, %2, %3, %4)', modeStatus, temp, targetTemp, achieved)
-
-	setVar(TEMPSETPOINTSID, "SetpointAchieved", achieved and "1" or "0", devNum)
-	setVar(TEMPSETPOINTSID_HEAT, "SetpointAchieved", achieved and "1" or "0", devNum)
-end
-
--- change setpoint -- not really supported at the moment
-function actionSetCurrentSetpoint(devNum, newSetPoint)
-	D("actionSetCurrentSetpoint(%1,%2)", devNum, newSetPoint)
-	--deviceMessage(devNum, 'Action not supported', true)
-
-	-- TODO: change it with an HTTP call?
-	-- restore temp back to the one used by the sensor
-	updateSetpointAchieved(devNum)
-
-	setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
-		-- compatibility with Heat
-	setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
-
-	-- turn on based on achieved status
-	-- TODO: turn off based on the same?
-	local achieved = getVarNumeric(TEMPSETPOINTSID, "SetpointAchieved", 0, devNum)
-	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
-	if achieved == 0 and modeStatus == "Off" then
-		actionPower(devNum, 1)
-	end
-end
-
--- set energy mode
-function actionSetEnergyModeTarget(devNum, newMode)
-	D("actionSetEnergyModeTarget(%1,%2)", devNum, newMode)
-
-	 setVar(HVACSID, "EnergyModeTarget", newMode, devNum)
-	 setVar(HVACSID, "EnergyModeStatus", newMode, devNum)
-end
-
--- change mode target
-function actionSetModeTarget(devNum, newMode)
-    D("actionSetModeTarget(%1,%2)", devNum, newMode)
-    
-	-- just set variable, watch will do the real work
-    setVar(HVACSID, "ModeTarget", newMode, devNum)
-    return true
-end
-
--- Toggle state
-function actionToggleState(devNum) 
-	D("actionToggleState(%1)", dev)
-	local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
-	if status == 1 then status = 0 else status = 1 end
-	actionPower(devNum, status)
+	-- send command
+	sendDeviceCommand(COMMANDS_TRIPPED, tostring(state or "0"), devNum)
 end
 
 -- Watch callback
-function thermostatWatch(devNum, sid, var, oldVal, newVal)
-    D("thermostatWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
+function sensorWatch(devNum, sid, var, oldVal, newVal)
+    D("sensorWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
 
 	if oldVal == newVal then return end
 
-	if sid == HVACSID then
-        if var == "ModeTarget" then
-			if newVal == "" then newVal = "Off" end -- AltUI+Openluup bug
-			actionPower(devNum, (newVal == "Off" and "0" or "1"))
-        elseif var == "ModeStatus" then
-            -- nothing to todo at the moment
+	if sid == SECURITYSID then
+        if var == "Tripped" then
+			actionTripped(devNum, newVal or "0")
         end
-	elseif sid == TEMPSETPOINTSID then
-		if (newVal and "") ~= "" then
-			setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newVal, devNum)
-		end
-		updateSetpointAchieved(devNum)
-    elseif sid == TEMPSETPOINTSID_HEAT then
-		if (newVal and "") ~= "" then
-			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
-		end
+--    elseif sid == GENERICSENSORSID then
+--		if (newVal and "") ~= "" then
+--			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
+--		end
     end
 end
 
@@ -328,37 +247,30 @@ function startPlugin(devNum)
 
 	-- generic init
 	initVar(MYSID, "DebugMode", 0, deviceID)
-    initVar(SWITCHSID, "Target", "0", deviceID)
-    initVar(SWITCHSID, "Status", "-1", deviceID)
 
-	-- heater init
-	initVar(HVACSID, "ModeStatus", "Off", deviceID)
-	initVar(TEMPSETPOINTSID, "CurrentSetpoint", "18", deviceID)
-	initVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", "18", deviceID)
-	initVar(TEMPSENSORSSID, "CurrentTemperature", "18", deviceID)
+	-- sensors init
+	initVar(SECURITYSID, "Armed", "0", deviceID)
+	initVar(SECURITYSID, "Tripped", "0", deviceID)
 
 	-- http calls init
-    initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, deviceID)
-	initVar(MYSID, COMMANDS_SETPOWEROFF, DEFAULT_ENDPOINT, deviceID)
+    initVar(MYSID, COMMANDS_TRIPPED, DEFAULT_ENDPOINT, deviceID)
+	initVar(MYSID, COMMANDS_ARMED, DEFAULT_ENDPOINT, deviceID)
 
 	-- set at first run, then make it configurable
 	if luup.attr_get("category_num", deviceID) == nil then
-		local category_num = 5
-		luup.attr_set("category_num", category_num, deviceID) -- heater
+		local category_num = 4
+		luup.attr_set("category_num", category_num, deviceID) -- security sensor
 	end
 
 	-- set at first run, then make it configurable
 	local subcategory_num = luup.attr_get("subcategory_num", deviceID) or 0
 	if subcategory_num == 0 then
-		luup.attr_set("subcategory_num", "2", deviceID) -- heater
+		luup.attr_set("subcategory_num", "1", deviceID) -- door sensor
 	end
 
 	-- watches
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeTarget", deviceID)
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeStatus", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", deviceID)
+    luup.variable_watch("sensorWatch", SECURITYSID, "Tripped", deviceID)
+	--luup.variable_watch("sensorWatch", SECURITYSID, "Armed", deviceID)
 
 	setVar(HASID, "Configured", 1, deviceID)
 
