@@ -43,9 +43,9 @@ This plug-ins support different kind of virtual devices, so choose the one you w
   - D_MotionSensor1.xml - motion sensor
   - D_SmokeSensor1.xml - smoke sensor
   - ? - glass break sensor
-  - D_FreezeSensor1.xm - freeze sensor
+  - D_FreezeSensor1.xml - freeze sensor
   - ? - Binary Sensor
-- Upnp Implementation Filename/Implementation file: L_VirtualGenericSensor1.xml
+- Upnp Implementation Filename/Implementation file: I_VirtualGenericSensor1.xml
 Subcategory number must be changed manually http://wiki.micasaverde.com/index.php/Luup_Device_Categories
 
 ### Window Covers/Roller Shutters/Blinds
@@ -105,6 +105,14 @@ For a custom device: http://mydevice/setwhitemode?v=%s
 
 The %s parameter will be replace with temperature (from 2000 to 6500 k).
 
+#### Sensors
+Set *SetTrippedURL* variable to the corresponding HTTP call (to trip/untrip).
+Set *SetArmedURL* variable to the corresponding HTTP call (to arm/disarm).
+
+For a custom device: http://mydevice/setwhitemode?v=%s
+
+The %s parameter will be replace with status (1 for active, 0 for disabled).
+
 #### Stop (Window Covers/Roller Shutters/Blinds)
 Set *SetMoveStopURL* variable to the corresponding HTTP call.
 
@@ -117,6 +125,7 @@ This integration is useful when the Vera system is the primary and only controll
 It's possible to sync the status, using standard Vera calls:
 
 http://veraip:3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
+http://veraip/port_3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
 
 ### OpenLuup/ALTUI
 The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
