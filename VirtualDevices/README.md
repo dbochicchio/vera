@@ -48,6 +48,7 @@ The device will emulate a basic Heater, and turn on or off the associated device
   - freeze sensor: D_FreezeSensor1.xml
   - Binary Sensor: ? 
 - Upnp Implementation Filename/Implementation file: *I_VirtualGenericSensor1.xml*
+
 Subcategory number must be changed manually as [reported here](http://wiki.micasaverde.com/index.php/Luup_Device_Categories).
 
 ### Window Covers/Roller Shutters/Blinds
