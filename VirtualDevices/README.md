@@ -126,10 +126,29 @@ No parameters are sent.
 
 ### Remarks
 This integration is useful when the Vera system is the primary and only controller for your remote lights.
-It's possible to sync the status, using standard Vera calls:
+It's possible to sync the status, using standard Vera calls. The example is for RGB:
 
 http://*veraip*:3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
 http://*veraip*/port_3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
+
+If you cannot use a long URL like this, you can place a custom handler in your startup code:
+```
+ -- http://ip:3480/data_request?id=lr_updateSwitch&device=170&status=0
+function lr_updateSwitch(lul_request, lul_parameters, lul_outputformat)
+	local devNum = tonumber(lul_parameters["device"], 10)
+	local status = tonumber(lul_parameters["status"] or "0")
+	luup.variable_set("urn:upnp-org:serviceId:SwitchPower1", "Status", status or "1", devNum)
+end
+
+luup.register_handler("lr_updateSwitch", "updateSwitch")
+```
+
+This can be called with a short URL like this:
+```
+http://*veraip*:3480/data_request?id=lr_updateSwitch&device=214&status=0
+```
+
+This is intented to turn a switch on/off and can be adapted for other variables as well.
 
 ### OpenLuup/ALTUI
 The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
