@@ -62,46 +62,46 @@ In order to configure a device, you must specify its remote HTTP endpoints. Thos
 #### Switch On/Off (All)
 To turn ON, set *SetPowerURL* variable to the corresponding HTTP call.
 
-For Tasmota: http://mydevice/cm?cmnd=Power+On
+For Tasmota: ```http://mydevice/cm?cmnd=Power+On```
 
-For Shelly: http://mydevice/relay/0?turn=on
+For Shelly: ```http://mydevice/relay/0?turn=on```
 
 To turn OFF, set *SetPowerOffURL* variable to the corresponding HTTP call.
 
-For Tasmota: http://mydevice/cm?cmnd=Power+Off
+For Tasmota: ```http://mydevice/cm?cmnd=Power+Off```
 
-For Shelly: http://mydevice/relay/0?turn=off
+For Shelly: ```http://mydevice/relay/0?turn=off```
 
-You can also specify only *SetPowerURL*, like this: http://mydevice/cm?cmnd=Power+%s
+You can also specify only *SetPowerURL*, like this: ```http://mydevice/cm?cmnd=Power+%s```
 The %s parameter will be replace with On/Off (this very same case), based on the required action.
 
 #### Toggle (All)
 Set *SetToggleURL* variable to the corresponding HTTP call.
 
-For Tasmota: http://mydevice/cm?cmnd=Power+Toggle
+For Tasmota: ```http://mydevice/cm?cmnd=Power+Toggle```
 
-For Shelly: http://mydevice/relay/0?turn=toggle
+For Shelly:``` http://mydevice/relay/0?turn=toggle```
 
 No params required.
 
 #### Dimming (Dimmers, RGB Lights, Window Covers/Roller Shutters/Blinds)
 Set *SetBrightnessURL* variable to the corresponding HTTP call.
 
-For a custom device: http://mydevice/brigthness?v=%s
+For a custom device: ```http://mydevice/brigthness?v=%s```
 
 The %s parameter will be replace with the desired dimming (0/100).
 
 #### Color (RGB Lights)
 Set *SetRGBColorURL* variable to the corresponding HTTP call.
 
-For a custom device: http://mydevice/setcolor?v=%s
+For a custom device: ```http://mydevice/setcolor?v=%s```
 
 The %s parameter will be replace with the RBG color.
 
 #### White Temperature (RGB Lights)
 Set *SetWhiteTemperatureURL* variable to the corresponding HTTP call.
 
-For a custom device: http://mydevice/setwhitemode?v=%s
+For a custom device: ```http://mydevice/setwhitemode?v=%s```
 
 The %s parameter will be replace with temperature (from 2000 to 6500 k).
 
@@ -109,18 +109,18 @@ The %s parameter will be replace with temperature (from 2000 to 6500 k).
 Set *SetTrippedURL* variable to the corresponding HTTP call (to trip/untrip).
 Set *SetArmedURL* variable to the corresponding HTTP call (to arm/disarm).
 
-For a custom device: http://mydevice/tripped?v=%s
+For a custom device: ```http://mydevice/tripped?v=%s```
 
 The %s parameter will be replace with status (1 for active, 0 for disabled).
 
 Device can be armed by Vera, and tripped/untripped via HTTP with a similar URL:
-http://*veraip*/port_3480/data_request?id=variableset&DeviceNum=6&urn:micasaverde-com:serviceId:SecuritySensor1&Variable=Tripped&Value=*1*
+```http://*veraip*/port_3480/data_request?id=variableset&DeviceNum=6&urn:micasaverde-com:serviceId:SecuritySensor1&Variable=Tripped&Value=*1*```
 where value is 1 when tripped, 0 when untripped.
 
 #### Stop (Window Covers/Roller Shutters/Blinds)
 Set *SetMoveStopURL* variable to the corresponding HTTP call.
 
-For a custom device: http://mydevice/stop
+For a custom device: ```http://mydevice/stop```
 
 No parameters are sent.
 
@@ -128,8 +128,10 @@ No parameters are sent.
 This integration is useful when the Vera system is the primary and only controller for your remote lights.
 It's possible to sync the status, using standard Vera calls. The example is for RGB:
 
+```
 http://*veraip*:3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
 http://*veraip*/port_3480/data_request?id=variableset&DeviceNum=6&serviceId=urn:micasaverde-com:serviceId:Color1&Variable=CurrentColor&Value=0=0,1=0,2=255,3=0,4=0
+```
 
 If you cannot use a long URL like this, you can place a custom handler in your startup code:
 ```
