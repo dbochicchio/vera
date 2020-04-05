@@ -21,38 +21,38 @@ Every time you want a new virtual device, just repeat this operation.
 This plug-ins support different kind of virtual devices, so choose the one you want to use and follow this guide.
 
 ### Switch
-- Upnp Device Filename/Device File: D_BinaryLight1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
+- Upnp Device Filename/Device File: *D_BinaryLight1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VirtualBinaryLight1.xml*
 
 ### Dimmer
-- Upnp Device Filename/Device File: D_DimmableLight1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
+- Upnp Device Filename/Device File: *D_DimmableLight1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VirtualBinaryLight1.xml*
 
 ### RGB(CCT) Light
-- Upnp Device Filename/Device File: D_DimmableRGBLight1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualRGBW1.xml
+- Upnp Device Filename/Device File: *D_DimmableRGBLight1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VirtualRGBW1.xml*
 
 ### Heater
-- Upnp Device Filename/Device File: D_Heater1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualHeater1.xml
+- Upnp Device Filename/Device File: *D_Heater1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VirtualHeater1.xml*
 
 The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are supported, but only as cosmetic feature. No action will be taken when changing setpoints.
 
 ## Sensors (Door, Leak, Motion, Smoke, CO, Glass Break, Freeze or Binary Sensor)
 - Upnp Device Filename/Device File:
-  - D_DoorSensor1.xml - door sensor
-  - D_LeakSensor1.xml - leak sensor
-  - D_MotionSensor1.xml - motion sensor
-  - D_SmokeSensor1.xml - smoke sensor
-  - ? - glass break sensor
-  - D_FreezeSensor1.xml - freeze sensor
-  - ? - Binary Sensor
-- Upnp Implementation Filename/Implementation file: I_VirtualGenericSensor1.xml
-Subcategory number must be changed manually http://wiki.micasaverde.com/index.php/Luup_Device_Categories
+  - door sensor: *D_DoorSensor1.xml*
+  - leak sensor: *D_LeakSensor1.xml*
+  -  motion sensor: *D_MotionSensor1.xml*
+  - smoke sensor: *D_SmokeSensor1.xml*
+  - glass break sensor: ?
+  - freeze sensor: D_FreezeSensor1.xml
+  - Binary Sensor: ? 
+- Upnp Implementation Filename/Implementation file: *I_VirtualGenericSensor1.xml*
+Subcategory number must be changed manually as [reported here](http://wiki.micasaverde.com/index.php/Luup_Device_Categories).
 
 ### Window Covers/Roller Shutters/Blinds
-- Upnp Device Filename/Device File: D_WindowCovering1.xml
-- Upnp Implementation Filename/Implementation file: I_VirtualBinaryLight1.xml
+- Upnp Device Filename/Device File: *D_WindowCovering1.xml*
+- Upnp Implementation Filename/Implementation file: *I_VirtualBinaryLight1.xml*
 
 ### Configuration
 All devices are auto-configuring. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
