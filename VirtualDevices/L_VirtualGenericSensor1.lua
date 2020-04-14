@@ -1,7 +1,7 @@
 module("L_VirtualGenericSensor1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualGenericSensor"
-local _PLUGIN_VERSION = "1.4.0"
+local _PLUGIN_VERSION = "1.4.1"
 
 local debugMode = false
 
@@ -176,7 +176,7 @@ function httpGet(url)
 	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
 		return true, tostring(table.concat(response_body or ''))
 	else
-		return false
+		return false, nil
 	end
 end
 

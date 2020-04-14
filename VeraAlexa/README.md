@@ -5,7 +5,7 @@ On Vera only TTS is implemented.
 OpenLuup supports routines, announcements and advanced commands. Please install *jq* package before proceding.
 This is a work in progress.
 
-Tested with success with Vera Firmware 7.30/7.31. YMMV.
+Tested with success with Vera Firmware 7.30+. YMMV.
 All the devices are implemented as standard Vera device types.
 
 **This is beta software!**
@@ -25,11 +25,11 @@ To create a new device, got to *Apps*, then *Develop Apps*, then *Create device*
 
 # Configuration
 After installation, ensure to change mandatory variables under your Device, then *Advanced*, then *Variables*.
-Please set Username, Password, DefaultEcho, DefaultVolume, Language and AlexaHost/AmazonHost to your settings.
-Please refer to the original script instructions for more info about the correct values.
+Please adjust Username, Password, DefaultEcho, DefaultVolume, AnnouncmentVolume, Language and AlexaHost/AmazonHost to your settings.
+Youn can find more information about the supported values in the original bash script.
 
 # Use in code: TTS
-If you don't opt it for announcements (see later), only single devices are supported. You can't sync TTS on multiple devices without announcements.
+If you don't opt in for announcements (see later), only single devices are supported. You can't sync TTS on multiple devices without announcements. You can use *ALL* to cycle all your devices.
 
 Standard DLNAMediaController1:
 
@@ -74,10 +74,14 @@ If you need to force a reset, just use this code:
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", "Reset", {}, 666)
 ```
 
-This will reset cookie, device list and download the bash script again.
+This will reset cookie and device list, and will download the bash script again.
 
-# Use in code: Routines (OpenLuup only)
-Routines are only supported under OpenLuup (with jq package installed) at the moment:
+# jq package
+Wnen *jq* package is installed, the plug-in will automatically switch to the avanced version.
+jq can be installed on Vera via a special dev repo and should be coming with fw 7.32. On OpenLuup you can add jq via your package manager.
+
+# Use in code: Routines (requires jq)
+Routines are only supported with jq:
 
 ```
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
@@ -85,8 +89,8 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
   {RoutineName="YourRoutineName", GroupZones="Bedroom"}, 666)
 ```
 
-# Use in code: Generic commands (OpenLuup only)
-Commands are only supported under OpenLuup (with jq package installed) at the moment:
+# Use in code: Generic commands (requires jq)
+Commands are only supported with jq:
 
 ```
 luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
@@ -96,20 +100,7 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
 
 Please see https://github.com/thorsten-gehrig/alexa-remote-control/blob/master/alexa_remote_control.sh for a complete list of supported commands.
 
-# OpenLuup/ALTUI
-The device is working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
-
-# Problems with cookie?
-Sometimes cookie will not get generated. Here's the steps to get it manually:
-https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/156
-
-# One Time Passcode
-Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew a cookie when dealing with 2-factory authentication (2FA).
-Amazon will send you a One Time Passcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
-
-http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
-
-# Announcements with TTS (OpenLuup only)
+# Announcements with TTS (requires jq)
 You have to specifically enable announcements. This will give you the ability to have sync'ed TTS on groups (ie: Everywhere or your own defined groups).
 As per Amazon docs, Alexa excludes that device from announcement delivery if:
 - Announcements are disabled. (To enable or disable announcements in the Alexa app, go to  **Settings → Device Settings →  *device_name*  → Communications → Announcements**.)
@@ -155,6 +146,20 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1","Say",
    {Text='<voice name="Carla"><lang xml:lang="it-IT">Ciao da Vera Alexa</lang></voice>',
    Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
+
+# OpenLuup/AltUI
+The device is working and supported under OpenLuup and AltUI.
+In this case, if you're using an old version of AltUI/OpenLoop, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
+
+# Problems with cookie?
+Sometimes cookie will not get generated. Here's the steps to get it manually:
+https://community.getvera.com/t/alexa-tts-text-to-speech-and-more-plug-in-for-vera/211033/156
+
+# One Time Passcode
+Thanks to @E1cid, One Time Passcode are now supported. This makes easy to renew a cookie when dealing with 2-factory authentication (2FA).
+Amazon will send you a One Time Passcode via e-mail or SMS. You can use tasker/automate/whatever to send text with OTP to renew cookie with 2FA.
+
+http://*veraIP*:3480/data_request?id=variableset&DeviceNum=666&serviceId=urn:bochicchio-com:serviceId:VeraAlexa1&Variable=OneTimePassCode&Value=*OTPVALUE*
 
 # Support
 If you need more help, please post on Vera's forum and tag me (@therealdb).

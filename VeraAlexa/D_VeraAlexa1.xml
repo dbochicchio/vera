@@ -22,7 +22,7 @@
 				<serviceId>urn:bochicchio-com:serviceId:VeraAlexa1</serviceId>
 				<SCPDURL>S_VeraAlexa1.xml</SCPDURL>
 			</service>
-			<service>
+			<!--<service>
 				<serviceType>urn:dlna-org:service:DLNAMediaController:1</serviceType>
 				<serviceId>urn:dlna-org:serviceId:DLNAMediaController1</serviceId>
 				<SCPDURL>S_VeraAlexaSay1.xml</SCPDURL>
@@ -31,11 +31,11 @@
 				<serviceType>urn:schemas-micasaverde-com:service:Sonos:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Sonos1</serviceId>
 				<SCPDURL>S_VeraAlexaSay1.xml</SCPDURL>
-			</service>
+			</service>-->
 			<service>
 				<serviceType>urn:micasaverde-com:service:Volume:1</serviceType>
 				<serviceId>urn:micasaverde-com:serviceId:Volume1</serviceId>
-				<SCPDURL>S_VeraAlexaVolume1.xml</SCPDURL>
+				<SCPDURL>S_Volume1.xml</SCPDURL>
 			</service>
 		</serviceList>
 		<implementationList>

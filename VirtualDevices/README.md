@@ -124,6 +124,26 @@ For a custom device: http://mydevice/stop
 
 No parameters are sent.
 
+#### Ping device for status
+If you want to ping a device and have its status associated to the device, you can write a simple scene like this, to be executed every *x* minutes.
+
+```
+local function ping(address)
+    local returnCode = os.execute("ping -c 1 -w 2 " .. address)
+
+    if(returnCode ~= 0) then
+        returnCode = os.execute("arping -f -w 3 -I br-wan " .. address)
+    end
+
+    return tonumber(returnCode)
+end
+
+local status = ping('192.168.1.42')
+luup.set_failure(status, devID)
+```
+
+Where *devID* is the device ID and *192.168.1.42* is your IP address.
+
 ### Remarks
 This integration is useful when the Vera system is the primary and only controller for your remote lights.
 It's possible to sync the status, using standard Vera calls:

@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.10"
+local _PLUGIN_VERSION = "0.2.12"
 
 local debugMode = false
 local openLuup = false
@@ -25,11 +25,12 @@ local COMMANDS_SETVOLUME			        = "-e vol:%s -d %q"
 local COMMANDS_GETVOLUME			        = "-q -d %q | sed ':a;N;$!ba;s/\\n/ /g' | grep 'volume' | sed -r 's/^.*\"volume\":\\s*([0-9]+)[^0-9]*$/\\1/g'"
 local BIN_PATH                              = "/storage/alexa"
 local SCRIPT_NAME							= "alexa_remote_control_plain.sh"
+local SCRIPT_NAME_ADV						= "alexa_remote_control.sh"
 
 TASK_HANDLE = nil
 
 -- libs
-local lfs = require "lfs"
+local lfs = require("lfs")
 local json = require("dkjson")    
 
 --- ***** GENERIC FUNCTIONS *****
@@ -184,8 +185,7 @@ function os.capture(cmd, raw)
             ''
         ), 
         '[\n\r]+',
-        ' '
-    )
+        ' ')
    
    return output
 end
@@ -236,9 +236,6 @@ function addToQueue(device, settings)
 
 		table.insert(ttsQueue[device], settings)
 	else
-		-- format text and concatenate
-		--settings.Text = string.gsub(settings.Text, "%s+", "_")
-
 	    for f = 1, howMany do
 			table.insert(ttsQueue[device], settings)
 		end
@@ -250,21 +247,38 @@ function addToQueue(device, settings)
 	end
 end
 
+local function safeCall(call)
+	local function err(x)
+		local s = string.dump(call)
+		D('Error: %s - %s', x, s)
+	end
+
+	local s, r, e = xpcall(call, err)
+	return r
+end
+
 local function executeCommand(command)
-	-- TODO: try/catch	
-	local response = os.capture(command)
+	return safeCall(function()
+		local response = os.capture(command)
 
-	setVar(MYSID, "LatestResponse", response, masterID)
-	D("Response from Alexa.sh: %1", response)
+		-- set failure
+		local hasError = (response:find("ERROR: Amazon Login was unsuccessful.") or -1)>0
+		setVar(HASID, "CommFailure", (hasError and 2 or 0), masterID)
 
-	return response
+		-- lastresponse
+		setVar(MYSID, "LatestResponse", response, masterID)
+		D("Response from Alexa.sh: %1", response)
+
+		return response
+	end)
 end
 
 local function buildCommand(settings)
-	local args = "export EMAIL=%q && export PASSWORD=%q && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export USE_ANNOUNCEMENT_FOR_SPEAK=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
+	local args = "export EMAIL=%q && export PASSWORD=%q && export NORMALVOL=%s && export SPEAKVOL=%s && export TTS_LOCALE=%s && export LANGUAGE=%s && export AMAZON=%s && export ALEXA=%s && export USE_ANNOUNCEMENT_FOR_SPEAK=%s && export TMP=%q && %s/" .. SCRIPT_NAME .. " "
 	local username = getVar(MYSID, "Username", "", masterID)
 	local password = getVar(MYSID, "Password", "", masterID) .. getVar(MYSID, "OneTimePassCode", "", masterID)
-	local volume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
+	local defaultVolume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
+	local announcementVolume = getVarNumeric(MYSID, "AnnouncementVolume", 0, masterID)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local alexaHost = getVar(MYSID, "AlexaHost", "", masterID)
 	local amazonHost = getVar(MYSID, "AmazonHost", "", masterID)
@@ -272,7 +286,8 @@ local function buildCommand(settings)
 	local useAnnoucements = getVarNumeric(MYSID, "UseAnnoucements", 0, masterID)
 
 	local command = string.format(args, username, password,
-										(settings.Volume or volume),
+										(defaultVolume or announcementVolume),
+										(settings.Volume or announcementVolume),
 										(settings.Language or language), (settings.Language or language),
 										amazonHost, alexaHost,
 										useAnnoucements,
@@ -286,7 +301,6 @@ local function buildCommand(settings)
 end
 
 function sayTTS(device, settings)
-	local volume = getVarNumeric(MYSID, "DefaultVolume", "", masterID)
 	local defaultDevice = getVar(MYSID, "DefaultEcho", "", masterID)
 	local text = (settings.Text or "Test")
 
@@ -298,7 +312,6 @@ function sayTTS(device, settings)
 					
 	D("Executing command [TTS]: %1", args)
 	executeCommand(command)
-	
 
 	-- wait for the next one in queue
 	local defaultBreak = getVar(MYSID, "DefaultBreak", 3, masterID)
@@ -407,7 +420,7 @@ function startPlugin(devNum)
 
 	-- jq installed?
 	if isFile("/usr/bin/jq") then
-		SCRIPT_NAME = "alexa_remote_control.sh"
+		SCRIPT_NAME = SCRIPT_NAME_ADV
 
 		deviceMessage(masterID, "Clearing...", false, 5)
 
@@ -428,12 +441,18 @@ function startPlugin(devNum)
 	initVar(MYSID, "DefaultEcho", "Bedroom", masterID)
 	initVar(MYSID, "DefaultVolume", 50, masterID)
 
+	-- migration
+	if initVar(MYSID, "AnnouncementVolume", "0", masterID) == "0" then
+		local volume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
+		setVar(HASID, "AnnouncementVolume", volume, masterID)
+	end
+
 	-- init default values for US
 	initVar(MYSID, "Language", "en-us", masterID)
 	initVar(MYSID, "AlexaHost", "pitangui.amazon.com", masterID)
 	initVar(MYSID, "AmazonHost", "amazon.com", masterID)
 
-	-- annoucments
+	-- annoucements
 	initVar(MYSID, "UseAnnoucements", "0", masterID)
 	initVar(MYSID, "DefaultBreak", 3, masterID)
 
@@ -445,10 +464,14 @@ function startPlugin(devNum)
 	    luup.attr_set("category_num", "15", masterID)			-- A/V
 	end
 
+	-- generic
+	initVar(HASID, "CommFailure", 0, masterID)
+
 	-- currentversion
 	local vers = initVar(MYSID, "CurrentVersion", "0", masterID)
 	if vers ~= _PLUGIN_VERSION then
 		-- new version, let's reload the script again
+		L("New versione detected: reconfiguration in progress")
 		setVar(HASID, "Configured", 0, masterID)
 		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, masterID)
 	end

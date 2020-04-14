@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.0.0"
+local _PLUGIN_VERSION = "1.1.0"
 
 local debugMode = false
 local masterID = -1
@@ -188,7 +188,7 @@ function httpGet(url)
         sink = ltn12.sink.table(response_body)
     }
 
-    L("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), (status or -1), tostring(table.concat(response_body or "")))
+    D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
     if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
         return true, tostring(table.concat(response_body or ''))
@@ -313,7 +313,7 @@ local function discovery()
 
 					setVar(MYSID, "ZoneID", (zoneID-1), childID)
 
-					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID)) == "0" then
+					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
 						luup.attr_set("category_num", "2", childID)			-- Dimmer
 						luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 						setVar(HASID, "Configured", 1, childID)
@@ -395,7 +395,7 @@ local function discovery()
 						D("Setting zone data FAILED: %1 - %2", childID, programID)
 					end
 
-					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) == "0") then
+					if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
 						luup.attr_set("category_num", "3", childID)			-- Switch
 						luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 
@@ -723,12 +723,11 @@ function startPlugin(devNum)
     initVar(MYSID, "MaxZones", "32", devNum)
 
 	-- categories
-	if luup.attr_get("category_num", devNum) == nil or tostring(luup.attr_get("subcategory_num", devNum) == "0") then
+	if luup.attr_get("category_num", devNum) == nil or tostring(luup.attr_get("subcategory_num", devNum) or 0) == "0" then
 	    luup.attr_set("category_num", "3", devNum)			-- Switch
 	    luup.attr_set("subcategory_num", "7", devNum)		-- Water Valve
+		luup.attr_set("device_file", "D_VeraOpenSprinkler1.xml", devNum) -- fix it at startup
 	end
-
-	luup.attr_set("device_file", "D_VeraOpenSprinkler1.xml", devNum) -- fix it at startup
 
 	-- IP configuration
 	local ip = luup.attr_get("ip", devNum)
