@@ -31,28 +31,30 @@ Youn can find more information about the supported values in the original bash s
 # Use in code: TTS
 If you don't opt in for announcements (see later), only single devices are supported. You can't sync TTS on multiple devices without announcements. You can use *ALL* to cycle all your devices.
 
-Standard DLNAMediaController1:
+Standard endpoint:
 
 ```
-luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
+luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
 
 Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!).
 
-Sonos plug-in endpoints:
+If you want to use DLNAMediaController1 or Sonos plug-in, the corresponding plug-ins must be installed.
+
+DLNAMediaController1:
+
+```
+luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
+  "Say",
+  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom"}, 666)
+```
+
+Sonos1:
 
 ```
 luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
-  "Say",
-  {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
-```
-
-Proprietary endpoint:
-
-```
-luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1", 
   "Say",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```

@@ -11,7 +11,7 @@
 		<friendlyName>Alexa</friendlyName>
 		<manufacturer>Amazon</manufacturer>
 		<manufacturerURL>https://github.com/dbochicchio/vera/VeraAlexa</manufacturerURL>
-		<modelDescription>Sprinkler Controller</modelDescription>
+		<modelDescription>Alexa plug-in</modelDescription>
 		<modelName>Amazon</modelName>
 		<modelNumber>1.0</modelNumber>
 		<protocol>cr</protocol>
