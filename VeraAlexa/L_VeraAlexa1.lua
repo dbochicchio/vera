@@ -1,7 +1,7 @@
 module("L_VeraAlexa1", package.seeall)
 
 local _PLUGIN_NAME = "VeraAlexa"
-local _PLUGIN_VERSION = "0.2.12"
+local _PLUGIN_VERSION = "0.2.13"
 
 local debugMode = false
 local openLuup = false
@@ -444,7 +444,8 @@ function startPlugin(devNum)
 	-- migration
 	if initVar(MYSID, "AnnouncementVolume", "0", masterID) == "0" then
 		local volume = getVarNumeric(MYSID, "DefaultVolume", 0, masterID)
-		setVar(HASID, "AnnouncementVolume", volume, masterID)
+		setVar(MYSID, "AnnouncementVolume", volume, masterID)
+		setVar(HASID, "AnnouncementVolume", nil, masterID)
 	end
 
 	-- init default values for US
@@ -474,6 +475,9 @@ function startPlugin(devNum)
 		L("New versione detected: reconfiguration in progress")
 		setVar(HASID, "Configured", 0, masterID)
 		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, masterID)
+
+		-- 0.2.13+
+		luup.attr_set("device_type", "urn:bochicchio-com:device:VeraAlexa:1", masterID)
 	end
 	
 	-- check for configured flag and for the script

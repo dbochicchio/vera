@@ -41,9 +41,14 @@ luup.call_action("urn:bochicchio-com:serviceId:VeraAlexa1",
 
 Where *666* is your device ID, Volume is the volume (from 0 to 50) and GroupZones your Echo (case sensitive!).
 
+Language should be set globally, volume can be omitted (and *AnnouncementVolume* variable will be used instead), device can be omitted (and *DefaultEcho* will be used instead).
+You can omit *Repeat* param and 1 will be used as default.
+Volume will return to *DefaultVolume* after an announcement is played.
+
+### Deprecated endpoints
 If you want to use DLNAMediaController1 or Sonos plug-in, the corresponding plug-ins must be installed.
 
-DLNAMediaController1:
+DLNAMediaController:
 
 ```
 luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1", 
@@ -51,7 +56,7 @@ luup.call_action("urn:dlna-org:serviceId:DLNAMediaController1",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom"}, 666)
 ```
 
-Sonos1:
+Sonos:
 
 ```
 luup.call_action("urn:micasaverde-com:serviceId:Sonos1", 
@@ -59,15 +64,12 @@ luup.call_action("urn:micasaverde-com:serviceId:Sonos1",
   {Text="Hello from Vera Alexa", Volume=50, GroupZones="Bedroom", Repeat = 3}, 666)
 ```
 
-Language should be set globally, volume can be omitted (and *DefaultVolume* variable will be used instead), device can be omitted (and *DefaultEcho* will be used instead).
-You can omit *Repeat* param and 1 will be used as default.
-
 # Use in code: Volume
-- *urn:dlna-org:serviceId:DLNAMediaController1*: *Down*/*Up*/*Mute*
-- *urn:dlna-org:serviceId:DLNAMediaController1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
+- *urn:bochicchio-com:serviceId:VeraAlexa1*: *Down*/*Up*/*Mute*
+- *urn:bochicchio-com:serviceId:VeraAlexa1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
 - *urn:micasaverde-com:serviceId:Volume1*: *Down*/*Up*/*Mute*
-
-All these actions are also offered on the proprietary service *urn:bochicchio-com:serviceId:VeraAlexa1*.
+- (Deprecated) *urn:dlna-org:serviceId:DLNAMediaController1*: *Down*/*Up*/*Mute*
+- (Deprecated) *urn:dlna-org:serviceId:DLNAMediaController1*: *SetVolume* (with parameter *DesiredVolume* and *GroupZones*)
 
 # Use in code: Reset
 If you need to force a reset, just use this code:
@@ -112,8 +114,10 @@ As per Amazon docs, Alexa excludes that device from announcement delivery if:
 *Manage Announcements in the Alexa mobile app. Go to*   **Settings > Device Settings >**   ***device_name***   **>Communications > Announcements**   *to configure settings for each Alexa device in your household.*
 
 Announcements are opt-in and could be configured with these variables:
-- UseAnnoucements: set to 1 to enable, 0 to disable
-- DefaultBreak: default to 3 secs - it's the time between repeated announcements
+- *UseAnnoucements*: set to 1 to enable, 0 to disable
+- *DefaultBreak*: default to 3 secs - it's the time between repeated announcements
+- *AnnouncmentVolume*: the volume used to play the announcment, if an explicit volume is not specified
+- *DefaultVolume*: the default volume to be restored after an announcment is played, if the current volume cannot be determined
 
 # More code examples
 ```

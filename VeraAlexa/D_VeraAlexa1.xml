@@ -5,7 +5,7 @@
 		<minor>0</minor>
 	</specVersion>
 	<device>
-		<deviceType>urn:dlna-org:device:DLNAMediaController:1</deviceType>
+		<deviceType>urn:bochicchio-com:device:VeraAlexa:1</deviceType>
 		<staticJson>D_ComboDevice1.json</staticJson>
 		<Category_Num>15</Category_Num>
 		<friendlyName>Alexa</friendlyName>
