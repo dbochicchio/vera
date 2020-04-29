@@ -1,7 +1,7 @@
 module("L_VirtualGenericSensor1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualGenericSensor"
-local _PLUGIN_VERSION = "1.4.1"
+local _PLUGIN_VERSION = "1.4.2"
 
 local debugMode = false
 
@@ -10,7 +10,9 @@ local SECURITYSID							= "urn:micasaverde-com:serviceId:SecuritySensor1"
 local HASID                                 = "urn:micasaverde-com:serviceId:HaDevice1"
 
 local COMMANDS_TRIPPED						= "SetTrippedURL"
+local COMMANDS_UNTRIPPED					= "SetUnTrippedURL"
 local COMMANDS_ARMED						= "SetArmedURL"
+local COMMANDS_UNARMED						= "SetUnArmedURL"
 local DEFAULT_ENDPOINT						= "http://"
 
 local deviceID = -1
@@ -67,7 +69,7 @@ local function L(msg, ...) -- luacheck: ignore 212
         str = tostring(msg.prefix or _PLUGIN_NAME) .. ": " .. tostring(msg.msg)
         level = msg.level or level
     else
-        str = _PLUGIN_NAME .. ": " .. tostring(msg)
+        str = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. ": " .. tostring(msg)
     end
     str = string.gsub(str, "%%(%d+)", function(n)
         n = tonumber(n, 10)
@@ -90,7 +92,7 @@ local function D(msg, ...)
 
     if debugMode then
         local t = debug.getinfo(2)
-        local pfx = _PLUGIN_NAME .. "(" .. tostring(t.name) .. "@" ..
+        local pfx = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. "(" .. tostring(t.name) .. "@" ..
                         tostring(t.currentline) .. ")"
         L({msg = msg, prefix = pfx}, ...)
     end
@@ -209,19 +211,25 @@ end
 -- turn on/off compatibility
 function actionArmed(devNum, state)
 	state = tostring(state or "0")
+	
+	D("actionArmed(%1,%2,%3)", devNum, state, state == "1" and COMMANDS_ARMED or COMMANDS_UNARMED)
 
 	setVar(SECURITYSID, "Armed", state, devNum)
+
 	-- no need to update ArmedTripped, it will be automatic
 
 	-- send command
-	sendDeviceCommand(COMMANDS_ARMED, state, devNum)
+	sendDeviceCommand(state == "1" and COMMANDS_ARMED or COMMANDS_UNARMED, state, devNum)
 end
 
 function actionTripped(devNum, state)
 	-- no need to update LastTrip, it will be automatic
+	state = tostring(state or "0")
+
+	D("actionTripped(%1,%2,%3)", devNum, state, state == "1" and COMMANDS_TRIPPED or COMMANDS_UNTRIPPED)
 
 	-- send command
-	sendDeviceCommand(COMMANDS_TRIPPED, tostring(state or "0"), devNum)
+	sendDeviceCommand(state == "1" and COMMANDS_TRIPPED or COMMANDS_UNTRIPPED, state, devNum)
 end
 
 -- Watch callback
@@ -253,8 +261,12 @@ function startPlugin(devNum)
 	initVar(SECURITYSID, "Tripped", "0", deviceID)
 
 	-- http calls init
-    initVar(MYSID, COMMANDS_TRIPPED, DEFAULT_ENDPOINT, deviceID)
-	initVar(MYSID, COMMANDS_ARMED, DEFAULT_ENDPOINT, deviceID)
+    local commandTripped = initVar(MYSID, COMMANDS_TRIPPED, DEFAULT_ENDPOINT, deviceID)
+	local commandArmed = initVar(MYSID, COMMANDS_ARMED, DEFAULT_ENDPOINT, deviceID)
+
+	-- upgrade code
+	initVar(MYSID, COMMANDS_UNTRIPPED, commandTripped, deviceID)
+	initVar(MYSID, COMMANDS_UNARMED, commandArmed, deviceID)
 
 	-- set at first run, then make it configurable
 	if luup.attr_get("category_num", deviceID) == nil then

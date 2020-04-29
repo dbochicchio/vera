@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.4.1"
+local _PLUGIN_VERSION = "1.4.2"
 
 local debugMode = false
 local deviceID = -1
@@ -72,7 +72,7 @@ local function L(msg, ...) -- luacheck: ignore 212
         str = tostring(msg.prefix or _PLUGIN_NAME) .. ": " .. tostring(msg.msg)
         level = msg.level or level
     else
-        str = _PLUGIN_NAME .. ": " .. tostring(msg)
+        str = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. ": " .. tostring(msg)
     end
     str = string.gsub(str, "%%(%d+)", function(n)
         n = tonumber(n, 10)
@@ -95,7 +95,7 @@ local function D(msg, ...)
 
     if debugMode then
         local t = debug.getinfo(2)
-        local pfx = _PLUGIN_NAME .. "(" .. tostring(t.name) .. "@" ..
+        local pfx = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. "(" .. tostring(t.name) .. "@" ..
                         tostring(t.currentline) .. ")"
         L({msg = msg, prefix = pfx}, ...)
     end
@@ -232,7 +232,7 @@ function actionPower(state, dev)
 
     -- UI needs LoadLevelTarget/Status to conform with state according to Vera's rules.
     if not state then
-			sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, "off", dev)
+			sendDeviceCommand(COMMANDS_SETPOWEROFF, "off", dev)
 			if isDimmer or isBlind then
 				setVar(DIMMERSID, "LoadLevelTarget", 0, dev)
 				setVar(DIMMERSID, "LoadLevelStatus", 0, dev)
@@ -275,7 +275,7 @@ function actionBrightness(newVal, dev)
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, dev)
     else
         -- Level 0 (not allowed as an "on" state), switch light off.
-        sendDeviceCommand(COMMANDS_SETPOWEROFF or COMMANDS_SETPOWER, {"off"}, dev)
+        sendDeviceCommand(COMMANDS_SETPOWEROFF, {"off"}, dev)
         setVar(SWITCHSID, "Target", 0, dev)
         setVar(SWITCHSID, "Status", 0, dev)
     end

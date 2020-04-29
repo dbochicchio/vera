@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.4.1"
+local _PLUGIN_VERSION = "1.4.2"
 
 local debugMode = false
 
@@ -78,7 +78,7 @@ local function L(msg, ...) -- luacheck: ignore 212
         str = tostring(msg.prefix or _PLUGIN_NAME) .. ": " .. tostring(msg.msg)
         level = msg.level or level
     else
-        str = _PLUGIN_NAME .. ": " .. tostring(msg)
+        str = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. ": " .. tostring(msg)
     end
     str = string.gsub(str, "%%(%d+)", function(n)
         n = tonumber(n, 10)
@@ -101,7 +101,7 @@ local function D(msg, ...)
 
     if debugMode then
         local t = debug.getinfo(2)
-        local pfx = _PLUGIN_NAME .. "(" .. tostring(t.name) .. "@" ..
+        local pfx = (_PLUGIN_NAME .. "[" .. _PLUGIN_VERSION .. "]") .. "(" .. tostring(t.name) .. "@" ..
                         tostring(t.currentline) .. ")"
         L({msg = msg, prefix = pfx}, ...)
     end
