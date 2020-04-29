@@ -110,8 +110,10 @@ For a custom device: ```http://mydevice/setwhitemode?v=%s```
 The %s parameter will be replace with temperature (from 2000 to 6500 k).
 
 #### Sensors
-Set *SetTrippedURL* variable to the corresponding HTTP call (to trip/untrip).
-Set *SetArmedURL* variable to the corresponding HTTP call (to arm/disarm).
+Set *SetTrippedURL* variable to the corresponding HTTP call (to trip).
+Set *SetUnTrippedURL* variable to the corresponding HTTP call (to untrip).
+Set *SetArmedURL* variable to the corresponding HTTP call (to arm).
+Set *SetUnArmedURL* variable to the corresponding HTTP call (to disarm).
 
 For a custom device: ```http://mydevice/tripped?v=%s```
 
