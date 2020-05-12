@@ -117,9 +117,9 @@ Set *SetUnArmedURL* variable to the corresponding HTTP call (to disarm).
 
 For a custom device: ```http://mydevice/tripped?v=%s```
 
-The %s parameter will be replace with status (1 for active, 0 for disabled).
+The %s parameter will be replace with status (1 for active, 0 for disabled). You can specify a complete URL if you want.
 
-Device can be armed by Vera, and tripped/untripped via HTTP with a similar URL:
+Device can be armed/disarmed via UI, and tripped/untripped via HTTP with a similar URL:
 ```http://*veraip*/port_3480/data_request?id=variableset&DeviceNum=6&urn:micasaverde-com:serviceId:SecuritySensor1&Variable=Tripped&Value=*1*```
 where value is 1 when tripped, 0 when untripped.
 

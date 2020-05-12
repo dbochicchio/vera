@@ -2,21 +2,21 @@
 <implementation>
 	<functions>
 		function startupPlugin(devNum)
-		luup.log("OpenSprinkler Controller Plug-In starting...")
-		VeraOpenSprinkler1 = require("L_VeraOpenSprinkler1")
-		return VeraOpenSprinkler1.startPlugin(devNum)
+			luup.log("VeraOpenSprinkler Controller Plug-In starting...")
+			VeraOpenSprinkler1 = require("L_VeraOpenSprinkler1")
+			return VeraOpenSprinkler1.startPlugin(devNum)
 		end
 
-		function updateStatus()
-		VeraOpenSprinkler1.updateStatus()
+		function updateFromController(status)
+			VeraOpenSprinkler1.updateFromController(status)
 		end
 
 		function clearMessage()
-		VeraOpenSprinkler1.clearMessage()
+			VeraOpenSprinkler1.clearMessage()
 		end
 
 		function actionPowerChild(dev_id, service, variable, oldValue, newValue)
-		VeraOpenSprinkler1.actionPower(newValue, dev_id)
+			VeraOpenSprinkler1.actionPower(newValue, dev_id)
 		end
 	</functions>
 	<startup>startupPlugin</startup>

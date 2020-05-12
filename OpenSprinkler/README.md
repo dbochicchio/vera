@@ -54,6 +54,9 @@ Master, Zones and Program devices implements standard HA action for toggle state
 Zone devices implements standard dimmers action: *urn:upnp-org:serviceId:SwitchPower1 SetTarget*
 Master device has support to set Rain Delay via *urn:bochicchio-com:serviceId:OpenSprinkler1 SetRainDelay* passing *newRainDelay* (date and time in epoch format)
 
+# Discovery of new devices
+Starting from version 1.3, discovery of devices is done only on first run. If you want to force it again, set *Configured* to *0*.
+
 # OpenLuup/ALTUI
 The devices are working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
