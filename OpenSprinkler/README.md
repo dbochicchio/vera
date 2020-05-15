@@ -24,7 +24,6 @@ To install, simply upload the files in this directory (except readme) using Vera
 To create a new device, got to *Apps*, then *Develops*, then *Create device*.
 Every time you want to map a new controller, just repeat this operation.
 
-- Device Type: *urn:schemas-upnp-org:device:BinaryLight:1*
 - Upnp Device Filename/Device File: *D_VeraOpenSprinkler1.xml*
 - Upnp Implementation Filename/Implementation file: *I_VeraOpenSprinkler1.xml*
 - IP address: the OpenSprinkler Controller internal IP address (host name not supported)

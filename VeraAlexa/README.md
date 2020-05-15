@@ -18,7 +18,6 @@ To install, simply upload the files in this directory (except readme) using Vera
 
 To create a new device, got to *Apps*, then *Develop Apps*, then *Create device*.
 
-- Device Type: *urn:dlna-org:device:DLNAMediaController:1*
 - Upnp Device Filename/Device File: *D_VeraAlexa1.xml*
 - Upnp Implementation Filename/Implementation file: *I_VeraAlexa1.xml*
 - Parent Device: none
