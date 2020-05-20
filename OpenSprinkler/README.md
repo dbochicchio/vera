@@ -26,12 +26,12 @@ Every time you want to map a new controller, just repeat this operation.
 
 - Upnp Device Filename/Device File: *D_VeraOpenSprinkler1.xml*
 - Upnp Implementation Filename/Implementation file: *I_VeraOpenSprinkler1.xml*
-- IP address: the OpenSprinkler Controller internal IP address (host name not supported)
+- IP address: the OpenSprinkler Controller internal IP address (host name not supported) and port (omit if 80, otherwise use format *IP:port*)
 - Parent Device: none
 
 After installation, ensure to change the "IP" variable under the master device (if not specified before).
 Password is set to "opendoor" (in MD5 format), but you need to change it (see next part).
-Reload your Vera's engine and wait for you zones and programs to appear.
+Reload your Vera's engine (ie by executing *luup.reload()* in *App*, *Develop apps*, *Test luup code*) and wait for you zones and programs to appear.
 
 # Password
 OpenSprinkler use MD5-hashed passwords. Ensure to use a tool (such as http://www.md5.cz/) and save the generated password in the corresponding variable.
