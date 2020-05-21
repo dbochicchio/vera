@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.3.0"
+local _PLUGIN_VERSION = "1.3.1"
 
 local debugMode = false
 local masterID = -1
@@ -431,7 +431,7 @@ local function updateStatus(jsonResponse)
     -- MAIN STATUS
 
     -- STATUS
-    local state = tonumber(jsonResponse.settings.en or 1)
+    local state = tonumber(jsonResponse and jsonResponse.settings and jsonResponse.settings.en or 1)
 	D("Controller status: %1, %2", state, state == 1 and "1" or "0")
     setVar(SWITCHSID, "Status", state == 1 and "1" or "0", masterID)
 
