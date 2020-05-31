@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.3.1"
+local _PLUGIN_VERSION = "1.3.2"
 
 local debugMode = false
 local masterID = -1
@@ -285,7 +285,7 @@ local function discovery(jsonResponse)
 			-- Set the zone name
 			if childID == 0 then
 				-- TODO: if master valve, create as switch, not dimmer
-				D("Device to be added")
+				D("Zone Device ready to be added: %1", zoneID)
 				local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 										MYSID, "ZoneID", (zoneID-1),
 										"", "category_num", 2,
@@ -308,7 +308,7 @@ local function discovery(jsonResponse)
 				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
 					luup.attr_set("category_num", "2", childID)			-- Dimmer
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
-					setVar(HASID, "Configured", 1, childID)
+					setVar(MYSID, "Configured", 1, childID)
 
 					-- dimmers
 					initVar(DIMMERSID, "LoadLevelTarget", "0", childID)
@@ -346,12 +346,14 @@ local function discovery(jsonResponse)
 
 			-- Set the program name
 			if childID == 0 then
+				D("Program Device ready to be added: %1", programID)
+
 				local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 										MYSID, "ZoneID", (programID-1),
 										"", "category_num", 2,
 										"", "subcategory_num", 7
 										)
-				D("Device to be added")
+
 				luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", initVar, false)
 
 				syncChildren = true
@@ -384,7 +386,7 @@ local function discovery(jsonResponse)
 					luup.attr_set("category_num", "3", childID)			-- Switch
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 
-					setVar(HASID, "Configured", 1, childID)
+					setVar(MYSID, "Configured", 1, childID)
 				end
 
 				-- watch to turn on the valve from the master
@@ -404,7 +406,7 @@ local function discovery(jsonResponse)
 	if waterLevelChildID == 0 then
 		local initVar = string.format("%s,%s=%s",
 								"", "category_num", 16)
-		D("Device to be added")
+		D("Water Level Child Device ready to be added")
 		luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", "", "D_HumiditySensor1.xml", "", initVar, false)
 
 		syncChildren = true
@@ -412,7 +414,7 @@ local function discovery(jsonResponse)
 		if luup.attr_get("category_num", waterLevelChildID) == nil then
 			luup.attr_set("category_num", "16", waterLevelChildID)			-- Humidity sensor
 
-			setVar(HASID, "Configured", 1, waterLevelChildID)
+			setVar(MYSID, "Configured", 1, waterLevelChildID)
 		end
 
 		-- watch to turn on the valve from the master
@@ -467,7 +469,7 @@ local function updateStatus(jsonResponse)
 				local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
 				if currentState ~= state then
 					initVar(SWITCHSID, "Target", "0", childID)
-					setVar(HASID, "Configured", "1", childID)
+					setVar(MYSID, "Configured", "1", childID)
 					setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
 					setVerboseDisplay("Program: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
@@ -500,7 +502,7 @@ local function updateStatus(jsonResponse)
             local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
             if currentState ~= state then
 				initVar(SWITCHSID, "Target", "0", childID)
-				setVar(HASID, "Configured", "1", childID)
+				setVar(MYSID, "Configured", "1", childID)
 
                 setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
@@ -550,7 +552,7 @@ function updateFromController(firstRun)
 		updateStatus(jsonResponse)
 		if firstRun then
 			discovery(jsonResponse)
-			setVar(HASID, "Configured", 1, masterID)
+			setVar(MYSID, "Configured", 1, masterID)
 		end
 	else
 		L("updateFromController error: %1", response)
@@ -722,7 +724,7 @@ function startPlugin(devNum)
 	math.randomseed(tonumber(tostring(os.time()):reverse():sub(1,6)))
 
 	-- discovery only on first Running
-	local configured = getVarNumeric(HASID, "Configured", 0, masterID)
+	local configured = getVarNumeric(MYSID, "Configured", 0, masterID)
 
 	-- update
 	updateFromController(configured == 0)
