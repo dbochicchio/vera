@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.3.2"
+local _PLUGIN_VERSION = "1.4.0"
 
 local debugMode = false
 local masterID = -1
@@ -19,6 +19,10 @@ local SWITCHSID							= "urn:upnp-org:serviceId:SwitchPower1"
 local DIMMERSID							= "urn:upnp-org:serviceId:Dimming1"
 local HASID								= "urn:micasaverde-com:serviceId:HaDevice1"
 local HUMIDITYSID						= "urn:micasaverde-com:serviceId:HumiditySensor1"
+
+local SCHEMAS_BINARYLIGHT				= "urn:schemas-upnp-org:device:BinaryLight:1"
+local SCHEMAS_DIMMER					= "urn:schemas-upnp-org:device:DimmableLight:1"
+local SCHEMAS_HUMIDITY					= "urn:schemas-micasaverde-com:device:HumiditySensor:1"
 
 -- COMMANDS
 local COMMANDS_STATUS					= "ja"
@@ -203,14 +207,14 @@ local function setVerboseDisplay(line1, line2, devNum)
 	if line2 then setVar(MYSID, "DisplayLine2", line2 or "", devNum) end
 end
 
-local function findChild(parentID, childID)
+local function findChild(childID)
     for k, v in pairs(luup.devices) do
-        if (v.device_num_parent == parentID) and v.id == childID then
+        if tonumber(v.device_num_parent) == masterID and v.id == childID then
 			return k
         end
     end
 
-    D("Cannot find child: %1 - %2", parentID, childID)
+    D("Cannot find child: %1 - %2", masterID, childID)
     return 0
 end
 
@@ -270,36 +274,37 @@ end
 local function discovery(jsonResponse)
 	D("Discovery in progress...")
 
+	local childrenSameRoom = getVarNumeric(HASID, "ChildrenSameRoom", 1, masterID) == 1
+	local roomID = tonumber(luup.attr_get("room", masterID))
     local child_devices = luup.chdev.start(masterID)
-	local syncChildren = false
+	D("ChildrenSameRoom: %1, #%2", childrenSameRoom, roomID)
 
 	-- zones
-	D("Discovery 1/2 in progress...")
-	if type(jsonResponse.stations.snames) == "table" then
+	D("Discovery 1/3 in progress...")
+	if jsonResponse.stations and type(jsonResponse.stations.snames) == "table" then
 		-- get zones
 		for zoneID, zoneName in ipairs(jsonResponse.stations.snames) do
 			D("Discovery: Zone %1 - Name: %2", zoneID, zoneName)
 	
-			local childID = findChild(masterID, string.format(CHILDREN_ZONE, zoneID))
+			local childID = findChild(string.format(CHILDREN_ZONE, zoneID))
 
 			-- Set the zone name
-			if childID == 0 then
-				-- TODO: if master valve, create as switch, not dimmer
-				D("Zone Device ready to be added: %1", zoneID)
-				local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+			-- TODO: if master valve, create as switch, not dimmer
+			D("Zone Device ready to be added: %1", zoneID)
+			local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 										MYSID, "ZoneID", (zoneID-1),
 										"", "category_num", 2,
 										"", "subcategory_num", 7
 										)
-				luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, "", "D_DimmableLight1.xml", "", initVar, false)
-				syncChildren = true
-			else
+			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, SCHEMAS_DIMMER, "D_DimmableLight1.xml", "", initVar, false)
+
+			if childID ~= 0 then
 				D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
 
 				local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
 				local oldName =	luup.attr_get("name", childID)
 				if overrideName and oldName ~= zoneName then
-					luup.attr_set('name', zoneName, childID)
+					luup.attr_set("name", zoneName, childID)
 					setVar(MYSID, "UpdateNameFromController", 1, childID)
 				end
 
@@ -308,7 +313,7 @@ local function discovery(jsonResponse)
 				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
 					luup.attr_set("category_num", "2", childID)			-- Dimmer
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
-					setVar(MYSID, "Configured", 1, childID)
+					setVar(HASID, "Configured", 1, childID)
 
 					-- dimmers
 					initVar(DIMMERSID, "LoadLevelTarget", "0", childID)
@@ -317,53 +322,55 @@ local function discovery(jsonResponse)
 					initVar(DIMMERSID, "AllowZeroLevel", "1", childID)
 				end
 
+				if childrenSameRoom then
+					luup.attr_set("room", roomID, childID)
+				end
+
 				setLastUpdate(childID)
 			end
 		end
 	else
-		L("Discovery 1/2: nil response from controller")
+		L("Discovery 1/3: nil response from controller")
 	end
 
-	D("Discovery 1/2 completed...")
+	D("Discovery 1/3 completed...")
 
 	-- programs
-	D("Discovery 2/2 in progress...")
-	local programs = tonumber(jsonResponse.programs.nprogs)
+	D("Discovery 2/3 in progress...")
+	local programs = jsonResponse.programs and tonumber(jsonResponse.programs.nprogs) or 0
 
 	if programs>0 then
 		-- get programs
 		for i = 1, programs do
 			local programID = i-1
 
-			local counter = 0
-			for _, _ in ipairs(jsonResponse.programs.pd[i]) do counter = counter + 1 end
-
+			--local counter = 0
+			--for _, _ in ipairs(jsonResponse.programs.pd[i]) do counter = counter + 1 end
+			local counter = table.getn(jsonResponse.programs.pd[i])
 			local programName = jsonResponse.programs.pd[i][counter] -- last element in the array
 
 			D("Discovery: Program %1 - Name: %2 - %3", programID, programName, jsonResponse.programs.pd[i])
 	
-			local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programID))
+			local childID = findChild(string.format(CHILDREN_PROGRAM, programID))
 
 			-- Set the program name
-			if childID == 0 then
-				D("Program Device ready to be added: %1", programID)
+			D("Program Device ready to be added: %1", programID)
 
-				local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
-										MYSID, "ZoneID", (programID-1),
-										"", "category_num", 2,
-										"", "subcategory_num", 7
-										)
+			local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+									MYSID, "ZoneID", (programID-1),
+									"", "category_num", 2,
+									"", "subcategory_num", 7
+									)
 
-				luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, "", "D_BinaryLight1.xml", "", initVar, false)
+			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, SCHEMAS_BINARYLIGHT, "D_BinaryLight1.xml", "", initVar, false)
 
-				syncChildren = true
-			else
+			if childID ~= 0 then
 				D("Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
 
 				local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
 				local oldName =	luup.attr_get("name", childID)
 				if overrideName and oldName ~= programName then
-					luup.attr_set('name', programName, childID)
+					luup.attr_set("name", programName, childID)
 					setVar(MYSID, "UpdateNameFromController", 1, childID)
 				end
 				
@@ -386,44 +393,48 @@ local function discovery(jsonResponse)
 					luup.attr_set("category_num", "3", childID)			-- Switch
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 
-					setVar(MYSID, "Configured", 1, childID)
+					setVar(HASID, "Configured", 1, childID)
 				end
 
-				-- watch to turn on the valve from the master
+				if childrenSameRoom then
+					luup.attr_set("room", roomID, childID)
+				end
+
 				setLastUpdate(childID)
 			end
 		end
 	else
-		L("Discovery 2/2: no programs from controller")
+		L("Discovery 2/3: no programs from controller")
 	end
 
-	D("Discovery 2/2 completed...")
+	D("Discovery 2/3 completed...")
 
 	-- water level
-	local waterLevelChildID = findChild(masterID, string.format(CHILDREN_WATERLEVEL, 0))
+	D("Discovery 3/3 in progress...")
+	local waterLevelChildID = findChild(string.format(CHILDREN_WATERLEVEL, 0))
 	
 	-- Set the program names
-	if waterLevelChildID == 0 then
-		local initVar = string.format("%s,%s=%s",
-								"", "category_num", 16)
-		D("Water Level Child Device ready to be added")
-		luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", "", "D_HumiditySensor1.xml", "", initVar, false)
+	local initVar = string.format("%s,%s=%s",
+							"", "category_num", 16)
+	D("Water Level Child Device ready to be added")
+	luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", SCHEMAS_HUMIDITY, "D_HumiditySensor1.xml", "", initVar, false)
 
-		syncChildren = true
-	else
+	if childID ~= 0 then
 		if luup.attr_get("category_num", waterLevelChildID) == nil then
 			luup.attr_set("category_num", "16", waterLevelChildID)			-- Humidity sensor
 
-			setVar(MYSID, "Configured", 1, waterLevelChildID)
+			setVar(HASID, "Configured", 1, waterLevelChildID)
 		end
 
-		-- watch to turn on the valve from the master
+		if childrenSameRoom then
+				luup.attr_set("room", roomID, childID)
+		end
+
 		setLastUpdate(waterLevelChildID)
 	end
+	D("Discovery 3/3 completed...")
 
-	if syncChildren then
-		luup.chdev.sync(masterID, child_devices)
-	end
+	luup.chdev.sync(masterID, child_devices)
 
 	D("Discovery completed...")
 end
@@ -460,7 +471,7 @@ local function updateStatus(jsonResponse)
 	if programs ~= nil and #programs > 0 then
 		for i = 2, #programs do -- ignore the program
 			local programIndex = i-2
-			local childID = findChild(masterID, string.format(CHILDREN_PROGRAM, programIndex))
+			local childID = findChild(string.format(CHILDREN_PROGRAM, programIndex))
 			if childID>0 then
 				D("Program Status for %1: %2", childID, programs[i][1])
 	            local state = tonumber(programs[i][1] or "0") >= 1 and 1 or 0
@@ -469,7 +480,7 @@ local function updateStatus(jsonResponse)
 				local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
 				if currentState ~= state then
 					initVar(SWITCHSID, "Target", "0", childID)
-					setVar(MYSID, "Configured", "1", childID)
+					setVar(HASID, "Configured", "1", childID)
 					setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
 					setVerboseDisplay("Program: " .. ((state == 1) and "Running" or "Idle"), nil, childID)
@@ -493,7 +504,7 @@ local function updateStatus(jsonResponse)
         
     for i = 1, stations do
         -- Locate the device which represents the irrigation zone
-        local childID = findChild(masterID, string.format(CHILDREN_ZONE, i))
+        local childID = findChild(string.format(CHILDREN_ZONE, i))
 
         if childID>0 then
             local state = tonumber(jsonResponse.status.sn[i] or "0")
@@ -502,7 +513,7 @@ local function updateStatus(jsonResponse)
             local currentState = getVarNumeric(SWITCHSID, "Status", 0, childID)
             if currentState ~= state then
 				initVar(SWITCHSID, "Target", "0", childID)
-				setVar(MYSID, "Configured", "1", childID)
+				setVar(HASID, "Configured", "1", childID)
 
                 setVar(SWITCHSID, "Status", (state == 1) and "1" or "0", childID)
 
@@ -535,7 +546,7 @@ local function updateStatus(jsonResponse)
 	setVar(MYSID, "MasterStations", masterStations, masterID)
 
 	-- water level inside its own child device
-	local waterLevelDevice = findChild(masterID, string.format(CHILDREN_WATERLEVEL, 0))
+	local waterLevelDevice = findChild(string.format(CHILDREN_WATERLEVEL, 0))
 	D("Water level: %1", waterLevel)
 	if waterLevelDevice>0 then
 		setVar(HUMIDITYSID, "CurrentLevel", waterLevel, waterLevelDevice)
@@ -552,7 +563,7 @@ function updateFromController(firstRun)
 		updateStatus(jsonResponse)
 		if firstRun then
 			discovery(jsonResponse)
-			setVar(MYSID, "Configured", 1, masterID)
+			setVar(HASID, "Configured", 1, masterID)
 		end
 	else
 		L("updateFromController error: %1", response)
@@ -661,7 +672,7 @@ function actionPowerStopStation(devNum)
 	if zones ~= nil and #zones>0 then
 		for i=1,#zones-1 do -- ignore the last one
 			if zones[i] ~= nil and tonumber(zones[i])>0 then -- if value >0, then the zones is inside this program
-				local childID = findChild(masterID, string.format(CHILDREN_ZONE, i))
+				local childID = findChild(string.format(CHILDREN_ZONE, i))
 				if childID>0 then
 					D("actionPowerStopStation: stop zone %1 - device %2", i, childID)
 					actionPowerInternal(false, 0, childID)
@@ -723,8 +734,22 @@ function startPlugin(devNum)
 
 	math.randomseed(tonumber(tostring(os.time()):reverse():sub(1,6)))
 
+	-- currentversion
+	local vers = initVar(MYSID, "CurrentVersion", "0", masterID)
+	if vers ~= _PLUGIN_VERSION then
+		-- new version, let's reload the script again
+		L("New version detected: reconfiguration in progress")
+		setVar(HASID, "Configured", 0, masterID)
+		setVar(MYSID, "CurrentVersion", _PLUGIN_VERSION, masterID)
+
+		-- 0.2.13+
+		luup.attr_set("device_type", "urn:bochicchio-com:device:VeraAlexa:1", masterID)
+	end
+
 	-- discovery only on first Running
 	local configured = getVarNumeric(MYSID, "Configured", 0, masterID)
+
+	initVar(HASID, "ChildrenSameRoom", "1", masterID)
 
 	-- update
 	updateFromController(configured == 0)
