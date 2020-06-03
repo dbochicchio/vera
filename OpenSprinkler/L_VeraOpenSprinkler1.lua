@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.4.0"
+local _PLUGIN_VERSION = "1.4.1"
 
 local debugMode = false
 local masterID = -1
@@ -560,10 +560,15 @@ function updateFromController(firstRun)
 	local status, response = sendDeviceCommand(COMMANDS_STATUS)
     if status and response ~= nil then
 	    local jsonResponse = json.decode(response)
-		updateStatus(jsonResponse)
 		if firstRun then
 			discovery(jsonResponse)
 			setVar(HASID, "Configured", 1, masterID)
+		end
+
+		if jsonResponse ~= nil then
+			updateStatus(jsonResponse)
+		else
+			D('Got a nil respose from API')
 		end
 	else
 		L("updateFromController error: %1", response)
