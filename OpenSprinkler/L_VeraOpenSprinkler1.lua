@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.4.1"
+local _PLUGIN_VERSION = "1.4.2"
 
 local debugMode = false
 local masterID = -1
@@ -35,8 +35,6 @@ local CHILDREN_PROGRAM					= "OS-P-%s"
 local CHILDREN_WATERLEVEL				= "OS-WL-%s"
 
 TASK_HANDLE = nil
-
-local json = require("dkjson")    
 
 --- ***** GENERIC FUNCTIONS *****
 local function dump(t, seen)
@@ -169,7 +167,7 @@ end
 function httpGet(url)
     local ltn12 = require('ltn12')
     local http = require('socket.http')
-    local https = require("ssl.https")
+    local https = require('ssl.https')
 
     local response, status, headers
     local response_body = {}
@@ -181,6 +179,7 @@ function httpGet(url)
     response, status, headers = requestor.request{
         method = "GET",
         url = url .. '&rnd=' .. tostring(math.random()),
+		redirect = true,
         headers = {
             ["Content-Type"] = "application/json; charset=utf-8",
             ["Connection"] = "keep-alive"
@@ -191,7 +190,7 @@ function httpGet(url)
     D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
     if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
-        return true, tostring(table.concat(response_body or ''))
+        return true, table.concat(response_body or '')
     else
         return false, nil
     end
@@ -220,20 +219,9 @@ end
 
 function deviceMessage(devNum, message, error, timeout)
 	local status = error and 2 or 4
-	timeout = timeout or 0
+	timeout = timeout or 15
 	D("deviceMessage(%1,%2,%3,%4)", devNum, message, error, timeout)
-
-	if openLuup then
-		D("OpenLuup detected")
-		taskHandle = luup.task(message, status, _PLUGIN_NAME, taskHandle)
-		if timeout ~= 0 then
-			luup.call_delay("clearMessage", timeout, "", false)
-		else
-			taskHandle = -1
-		end
-	else
-		luup.device_message(devNum, status, message, timeout, _PLUGIN_NAME)
-	end	
+	luup.device_message(devNum, status, message, timeout, _PLUGIN_NAME)
 end
 
 function clearMessage()
@@ -262,7 +250,6 @@ local function sendDeviceCommand(cmd, params)
 
     local password = getVar(MYSID, "Password", "", masterID)
 	local ip = luup.attr_get("ip", masterID) or ""
-	--D("OS Controller IP: %1", ip)
 
     local cmdUrl = string.format('http://%s/%s?%s&pw=%s', ip, cmd, pstr, password)
 	D("sendDeviceCommand - url: %1", cmdUrl)
@@ -272,7 +259,9 @@ local function sendDeviceCommand(cmd, params)
 end
 
 local function discovery(jsonResponse)
-	D("Discovery in progress...")
+	D("[discovery] in progress...")
+	D("[discovery] valid jsonResponse: %1", jsonResponse ~= nil)
+	if (jsonResponse == nil) then return end
 
 	local childrenSameRoom = getVarNumeric(HASID, "ChildrenSameRoom", 1, masterID) == 1
 	local roomID = tonumber(luup.attr_get("room", masterID))
@@ -280,12 +269,12 @@ local function discovery(jsonResponse)
 	D("ChildrenSameRoom: %1, #%2", childrenSameRoom, roomID)
 
 	-- zones
-	D("Discovery 1/3 in progress...")
+	D("[discovery] 1/3 in progress...")
 	if jsonResponse.stations and type(jsonResponse.stations.snames) == "table" then
 		-- get zones
 		for zoneID, zoneName in ipairs(jsonResponse.stations.snames) do
 			D("Discovery: Zone %1 - Name: %2", zoneID, zoneName)
-	
+
 			local childID = findChild(string.format(CHILDREN_ZONE, zoneID))
 
 			-- Set the zone name
@@ -310,7 +299,7 @@ local function discovery(jsonResponse)
 
 				setVar(MYSID, "ZoneID", (zoneID-1), childID)
 
-				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
+				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") ~= "2" then
 					luup.attr_set("category_num", "2", childID)			-- Dimmer
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 					setVar(HASID, "Configured", 1, childID)
@@ -330,13 +319,13 @@ local function discovery(jsonResponse)
 			end
 		end
 	else
-		L("Discovery 1/3: nil response from controller")
+		L("[discovery] 1/3: nil response from controller")
 	end
 
-	D("Discovery 1/3 completed...")
+	D("[discovery] 1/3 completed...")
 
 	-- programs
-	D("Discovery 2/3 in progress...")
+	D("[discovery] 2/3 in progress...")
 	local programs = jsonResponse.programs and tonumber(jsonResponse.programs.nprogs) or 0
 
 	if programs>0 then
@@ -349,23 +338,23 @@ local function discovery(jsonResponse)
 			local counter = table.getn(jsonResponse.programs.pd[i])
 			local programName = jsonResponse.programs.pd[i][counter] -- last element in the array
 
-			D("Discovery: Program %1 - Name: %2 - %3", programID, programName, jsonResponse.programs.pd[i])
+			D("[discovery] Program %1 - Name: %2 - %3", programID, programName, jsonResponse.programs.pd[i])
 	
 			local childID = findChild(string.format(CHILDREN_PROGRAM, programID))
 
 			-- Set the program name
-			D("Program Device ready to be added: %1", programID)
+			D("[discovery] Program Device ready to be added: %1", programID)
 
 			local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 									MYSID, "ZoneID", (programID-1),
-									"", "category_num", 2,
+									"", "category_num", 3,
 									"", "subcategory_num", 7
 									)
 
 			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, SCHEMAS_BINARYLIGHT, "D_BinaryLight1.xml", "", initVar, false)
 
 			if childID ~= 0 then
-				D("Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
+				D("[discovery] Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
 
 				local overrideName = getVarNumeric(MYSID, "UpdateNameFromController", 1, childID) == 1
 				local oldName =	luup.attr_get("name", childID)
@@ -379,17 +368,17 @@ local function discovery(jsonResponse)
 				-- save program data, to stop stations when stopping the program
 				local programData = jsonResponse.programs.pd[i][counter-1] -- last-1 element in the array
 				if programData ~= nil then
-					D("Setting zone data: %1 - %2 - %3", childID, programID, programData)
+					D("[discovery] Setting zone data: %1 - %2 - %3", childID, programID, programData)
 					local programData_Zones = ""
 					for i=1,#programData do
 						programData_Zones = programData_Zones .. tostring(programData[i]) .. ","
 					end
 					setVar(MYSID, "Zones", programData_Zones, childID)
 				else
-					D("Setting zone data FAILED: %1 - %2", childID, programID)
+					D("[discovery] Setting zone data FAILED: %1 - %2", childID, programID)
 				end
 
-				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") == "0" then
+				if luup.attr_get("category_num", childID) == nil or tostring(luup.attr_get("subcategory_num", childID) or "0") ~= "3" then
 					luup.attr_set("category_num", "3", childID)			-- Switch
 					luup.attr_set("subcategory_num", "7", childID)		-- Water Valve
 
@@ -404,19 +393,19 @@ local function discovery(jsonResponse)
 			end
 		end
 	else
-		L("Discovery 2/3: no programs from controller")
+		L("[discovery] 2/3: no programs from controller")
 	end
 
-	D("Discovery 2/3 completed...")
+	D("[discovery] 2/3 completed...")
 
 	-- water level
-	D("Discovery 3/3 in progress...")
+	D("[discovery] 3/3 in progress...")
 	local waterLevelChildID = findChild(string.format(CHILDREN_WATERLEVEL, 0))
 	
 	-- Set the program names
 	local initVar = string.format("%s,%s=%s",
 							"", "category_num", 16)
-	D("Water Level Child Device ready to be added")
+	D("[discovery]Water Level Child Device ready to be added")
 	luup.chdev.append(masterID, child_devices, string.format(CHILDREN_WATERLEVEL, 0), "Water Level", SCHEMAS_HUMIDITY, "D_HumiditySensor1.xml", "", initVar, false)
 
 	if childID ~= 0 then
@@ -427,28 +416,27 @@ local function discovery(jsonResponse)
 		end
 
 		if childrenSameRoom then
-				luup.attr_set("room", roomID, childID)
+			luup.attr_set("room", roomID, waterLevelChildID)
 		end
 
 		setLastUpdate(waterLevelChildID)
 	end
-	D("Discovery 3/3 completed...")
+	D("[discovery] 3/3 completed...")
 
 	luup.chdev.sync(masterID, child_devices)
 
-	D("Discovery completed...")
+	D("[discovery] completed...")
 end
 
 local function updateStatus(jsonResponse)
 	D("Update status in progress...")
-    -- MAIN STATUS
 
     -- STATUS
     local state = tonumber(jsonResponse and jsonResponse.settings and jsonResponse.settings.en or 1)
 	D("Controller status: %1, %2", state, state == 1 and "1" or "0")
     setVar(SWITCHSID, "Status", state == 1 and "1" or "0", masterID)
 
-    -- RAIN DELAY: if 0, disable, otherwise raindelay stop time
+    -- RAIN DELAY: if 0, disabled, otherwise raindelay stop time
 	local rainDelay = tonumber(jsonResponse.settings.rdst)
     setVar(MYSID, "RainDelay", rainDelay, masterID)
 
@@ -554,21 +542,35 @@ local function updateStatus(jsonResponse)
 	end
 end
 
-function updateFromController(firstRun)
+function updateFromController()
+	-- discovery only on first Running
+	local configured = getVarNumeric(MYSID, "Configured", 0, masterID)
+	local firstRun = configured == 0
+
+	local _ ,json = pcall(require, "dkjson")
+
+	-- check for dependencies
+	if not json or type(json) ~= "table" then
+        L('Failure: dkjson library not found')
+		luup.set_failure( 1, devNum)
+        return
+    end
+
 	D("updateFromController started: %1", firstRun)
     
 	local status, response = sendDeviceCommand(COMMANDS_STATUS)
     if status and response ~= nil then
-	    local jsonResponse = json.decode(response)
-		if firstRun then
-			discovery(jsonResponse)
-			setVar(HASID, "Configured", 1, masterID)
-		end
+	    local jsonResponse, _, err = json.decode(response)
 
-		if jsonResponse ~= nil then
-			updateStatus(jsonResponse)
+		if err or jsonResponse == nil then
+			D('Got a nil respose from API or error: %1, %2', err, jsonResponse == nil)
 		else
-			D('Got a nil respose from API')
+			if firstRun then
+				discovery(jsonResponse)
+				setVar(HASID, "Configured", 1, masterID)
+			end
+
+			updateStatus(jsonResponse)
 		end
 	else
 		L("updateFromController error: %1", response)
@@ -668,6 +670,8 @@ function actionPowerInternal(state, seconds, devNum)
 	else
 		D("actionPower: Command skipped")
 	end
+
+	deviceMessage(devNum, 'Turning ' .. (state and "on" or "off"), false)
 end
 
 function actionPowerStopStation(devNum)
@@ -694,7 +698,6 @@ function actionSetRainDelay(newVal, devNum)
     setVar(MYSID, "RainDelay", 1, devNum)
 end
 
--- Toggle state
 function actionToggleState(devNum)
 	local currentState = getVarNumeric(SWITCHSID, "Status", 0, devNum) == 1
 	actionPower(not currentState, devNum)
@@ -706,12 +709,8 @@ function startPlugin(devNum)
     L("Plugin starting: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION)
 
 	-- detect OpenLuup
-	for k,v in pairs(luup.devices) do
-		if v.device_type == "openLuup" then
-			openLuup = true
-			D("Running on OpenLuup: %1", openLuup)
-		end
-	end
+	openLuup = luup.openLuup ~= nil
+	D("Running on OpenLuup: %1", openLuup)
 
 	-- init
     initVar(SWITCHSID, "Target", "0", masterID)
@@ -751,13 +750,11 @@ function startPlugin(devNum)
 		luup.attr_set("device_type", "urn:bochicchio-com:device:VeraAlexa:1", masterID)
 	end
 
-	-- discovery only on first Running
-	local configured = getVarNumeric(MYSID, "Configured", 0, masterID)
-
 	initVar(HASID, "ChildrenSameRoom", "1", masterID)
 
-	-- update
-	updateFromController(configured == 0)
+	-- startupDeferred
+    local refresh = getVarNumeric(MYSID, "Refresh", 10, masterID)
+	luup.call_delay("updateFromController", tonumber(refresh), false)
 
     -- status
     luup.set_failure(0, masterID)
