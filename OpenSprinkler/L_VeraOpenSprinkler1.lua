@@ -1,7 +1,7 @@
 module("L_VeraOpenSprinkler1", package.seeall)
 
 local _PLUGIN_NAME = "VeraOpenSprinkler"
-local _PLUGIN_VERSION = "1.4.2"
+local _PLUGIN_VERSION = "1.4.3"
 
 local debugMode = false
 local masterID = -1
