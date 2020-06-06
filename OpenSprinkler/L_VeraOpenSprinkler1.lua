@@ -165,6 +165,35 @@ local function initVar(sid, name, dflt, devNum)
 end
 
 function httpGet(url)
+	local timeout = 5
+	local fileName = '/tmp/opensprinkler.json'
+
+	local httpCmd = string.format("curl -m %d -o '%s' -k -L -H 'Content-type: application/json' '%s'",
+								timeout,
+								fileName,
+								url)
+
+	local res, err = os.execute(httpCmd)
+	if res ~= 0 then
+		D("[HttpGet] CURL failed: %1 %2: %3", res, err, httpCmd)
+	    return false, nil
+	else
+		local file, err = io.open(fileName, "r")
+		if not file then
+			D("[HttpGet] Cannot read response file: %1 - %2", fileName, err)
+			return false, nil
+		end
+
+		local response_body = file:read('*all')
+		file:close()
+
+		D("[HttpGet] %1 - %2", url, (response_body or ""))
+
+        return true, response_body
+    end
+end
+
+function httpGetOld(url)
     local ltn12 = require('ltn12')
     local http = require('socket.http')
     local https = require('ssl.https')
@@ -280,12 +309,12 @@ local function discovery(jsonResponse)
 			-- Set the zone name
 			-- TODO: if master valve, create as switch, not dimmer
 			D("Zone Device ready to be added: %1", zoneID)
-			local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+			local initialVariables = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 										MYSID, "ZoneID", (zoneID-1),
 										"", "category_num", 2,
 										"", "subcategory_num", 7
 										)
-			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, SCHEMAS_DIMMER, "D_DimmableLight1.xml", "", initVar, false)
+			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_ZONE, zoneID), zoneName, SCHEMAS_DIMMER, "D_DimmableLight1.xml", "", initialVariables, false)
 
 			if childID ~= 0 then
 				D("Set Name for Device %3 - Zone #%1: %2", zoneID, zoneName, childID)
@@ -345,13 +374,13 @@ local function discovery(jsonResponse)
 			-- Set the program name
 			D("[discovery] Program Device ready to be added: %1", programID)
 
-			local initVar = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
+			local initialVariables = string.format("%s,%s=%s\n%s,%s=%s\n%s,%s=%s\n",
 									MYSID, "ZoneID", (programID-1),
 									"", "category_num", 3,
 									"", "subcategory_num", 7
 									)
 
-			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, SCHEMAS_BINARYLIGHT, "D_BinaryLight1.xml", "", initVar, false)
+			luup.chdev.append(masterID, child_devices, string.format(CHILDREN_PROGRAM, programID), programName, SCHEMAS_BINARYLIGHT, "D_BinaryLight1.xml", "", initialVariables, false)
 
 			if childID ~= 0 then
 				D("[discovery] Set Name for Device %3 - Program #%1: %2", programID, programName, childID)
@@ -563,7 +592,7 @@ function updateFromController()
 	    local jsonResponse, _, err = json.decode(response)
 
 		if err or jsonResponse == nil then
-			D('Got a nil respose from API or error: %1, %2', err, jsonResponse == nil)
+			D('Got a nil response from API or error: %1, %2', err, jsonResponse == nil)
 		else
 			if firstRun then
 				discovery(jsonResponse)
