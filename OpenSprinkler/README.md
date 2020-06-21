@@ -1,18 +1,18 @@
 # OpenSprinkler plug-in for Vera
 Completely new and rewritten plug-in to interface an OpenSprinkler to a Vera system.
-It is able to discrovery and control:
+It is able to discovery and control:
 - Programs (turn on/off)
 - Zones (turn on/off, length in minutes using a dimmer)
-- Rain Delay (sensor coming soon)
+- Rain Delay and other attached sensors
 
 ![File](file.png)
 
 All the devices are implemented as standard Vera device types.
 
 In particular, I need help with
-- controller with a lot of zones (16/32+)
-- controller with master valve
-- controller with rain sensors
+- ~~controller with a lot of zones (16/32+)~~
+- ~~controller with master valve~~
+- ~~controller with rain sensors~~
 - support for scenes
 
 # Installation via MiOS App Store
@@ -45,7 +45,10 @@ OpenSprinkler use MD5-hashed passwords. Ensure to use a tool (such as http://www
 - *urn:bochicchio-com:serviceId:OpenSprinkler1* / *UpdateNameFromController*: 0 if you want to override the device name and never sync it with controller, 1 to sync it if changed (default)
 
 ## For Water Level
-- *urn:micasaverde-com:serviceId:HumiditySensor1* / *CurrentLevel*: if you want to get the water level from the device
+This is a standard humidity service, so you can get its value using the standard *urn:micasaverde-com:serviceId:HumiditySensor1* / *CurrentLevel* variable.
+
+## For sensors
+Sensore are standard security service device, so you can get its value using the standard *urn:micasaverde-com:serviceId:SecuritySensor1* / *Tripped* variable.
 
 # Use in code
 Master, Zones and Program devices implements standard switch action: *urn:upnp-org:serviceId:SwitchPower1 SetTarget*
@@ -55,9 +58,13 @@ Master device has support to set Rain Delay via *urn:bochicchio-com:serviceId:Op
 
 # Discovery of new devices
 Starting from version 1.3, discovery of devices is done only on first run. If you want to force it again, set *Configured* to *0*.
+Discovery is automatically performed each time the plug-in version is updated.
+
+# Debug
+If you want to see more debug info, set *Debug* variable on master device to *1*. No need to reload luup engine. Just set back to 0 if you want to disable it.
 
 # OpenLuup/ALTUI
-The devices are working and supported under OpenLuup and ALTUI. In this case, if you're using an old version, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
+The devices are working and supported under OpenLuup and AltUI. In this case, if you're using an old version of AltUI, just be sure the get the base service file from Vera (automatically done if you have the Vera Bridge installed).
 
 # Support
 If you need more help, please post it on Vera's forum and tag me (@therealdb).
