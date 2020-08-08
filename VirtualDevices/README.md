@@ -15,6 +15,12 @@ Go to your Vera web interface, then Apps, Install Apps and search for "Virtual H
 To install, simply upload the files in this directory (except readme) using Vera's feature (Go to *Apps*, then *Develop Apps*, then *Luup files* and select *Upload*) and then create a new device under Vera.
 App Store is recommended.
 
+# Async HTTP support (version 1.5+)
+Version 1.5 introduced support for async HTTP. This will make your device faster, because it's not blocking until the HTTP call is completed.
+This is supported out of the box on openLuup.
+Just download [this file](https://github.com/akbooer/openLuup/blob/master/openLuup/http_async.lua) if you're running this plug-in on Vera, and copy it with the plug-in files.
+Async HTTP is strongly recommended. The plug-in will automatically detect it and use it if present.
+
 # Create a new device
 To create a new device, got to Apps, then Develops, then Create device.
 Every time you want a new virtual device, just repeat this operation.
@@ -36,14 +42,16 @@ This plug-ins support different kind of virtual devices, so choose the one you w
 - Upnp Device Filename/Device File: *D_Heater1.xml*
 - Upnp Implementation Filename/Implementation file: *I_VirtualHeater1.xml*
 
-The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler. Temperature setpoints are supported, but only as cosmetic feature. No action will be taken when changing setpoints.
+The device will emulate a basic Heater, and turn on or off the associated device, translating this actions to a virtual thermostat handler.
+Temperature setpoints are supported, but only as cosmetic feature. Experimental setpoints support is added.
+External temperature sensor can be specified with *urn:bochicchio-com:serviceId:VirtualHeater1*/*TemperatureDevice*. If specified, the thermostat will copy its temperature from an external device. If omitted, you can update the corresponding variable of the thermostat using HTTP call or LUA code.
 
-## Sensors (Door, Leak, Motion, Smoke, CO, Glass Break, Freeze or Binary Sensor)
+### Sensors (Door, Leak, Motion, Smoke, CO, Glass Break, Freeze or Binary Sensor)
 - Upnp Device Filename/Device File:
 	|Sensor Type|Filename|Category|Subcategory|
 	|---|---|---|---|
 	|Door sensor|*D_DoorSensor1.xml*|4|1|
-	|Leak sensor|*D_LeakSensor1.xml*|4|3|
+	|Leak sensor|*D_LeakSensor1.xml*|4|2|
 	|Motion sensor|*D_MotionSensor1.xml*|4|3|
 	|Smoke sensor|*D_SmokeSensor1.xml*|4|4|
 	|CO sensor|Not supported|4|5|
@@ -176,10 +184,10 @@ This can be called with a short URL like this:
 http://*veraip*:3480/data_request?id=lr_updateSwitch&device=214&status=0
 ```
 
-This is intented to turn a switch on/off and can be adapted for other variables as well.
+This is intended to turn a switch on/off and can be adapted for other variables as well.
 
 ### OpenLuup/ALTUI
-The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (automatic if you have the Vera Bridge installed).
+The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (it's automatic if you have the Vera Bridge installed).
 
 ### Support
 If you need more help, please post on Vera's forum and tag me (@therealdb).

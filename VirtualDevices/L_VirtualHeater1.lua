@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.4.2"
+local _PLUGIN_VERSION = "1.5.0"
 
 local debugMode = false
 
@@ -157,31 +157,50 @@ function deviceMessage(devID, message, error, timeout)
 end
 
 function httpGet(url)
-	local ltn12 = require('ltn12')
-	local http = require('socket.http')
-	local https = require("ssl.https")
-
-	local response, status, headers
+	local ltn12 = require("ltn12")
+	local _, async = pcall(require, "http_async")
 	local response_body = {}
+	
+	D("httpGet: %1", type(async) == "table" and "async" or "sync")
 
-	-- Handler for HTTP or HTTPS?
-	local requestor = url:lower():find("^https:") and https or http
-	response, status, headers = requestor.request{
-		method = "GET",
-		url = url,
-		headers = {
-			["Content-Type"] = "application/json; charset=utf-8",
-			["Connection"] = "keep-alive"
+	-- async
+	if type(async) == "table" then
+		-- Async Handler for HTTP or HTTPS
+		async.request(
+		{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
 		},
-		sink = ltn12.sink.table(response_body)
-	}
+		function (response, status, headers, statusline)
+			D("httpGet.Async: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+		end)
 
-	D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
-
-	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
-		return true, tostring(table.concat(response_body or ''))
+		return true, "" -- async requests are considered good unless they"re not
 	else
-		return false, nil
+		-- Sync Handler for HTTP or HTTPS
+		local requestor = url:lower():find("^https:") and require("ssl.https") or require("socket.http")
+		local response, status, headers = requestor.request{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
+		}
+
+		D("httpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+
+		if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
+			return true, tostring(table.concat(response_body or ""))
+		else
+			return false, nil
+		end
 	end
 end
 
@@ -206,13 +225,19 @@ local function sendDeviceCommand(cmd, params, devNum)
     local pstr = table.concat(pv, ",")
 
     local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
-    if (cmdUrl ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
+    if (cmdUrl ~= DEFAULT_ENDPOINT) then 
+		D("sendDeviceCommand-url(%1)", cmdUrl)
+		return httpGet(string.format(cmdUrl, pstr))
+	end
 
+	D("sendDeviceCommand: cannot send (%1)", cmdUrl)
     return false
 end
 
 -- turn on/off compatibility
 function actionPower(devNum, state)
+    D("sendDeviceCommand(%1,%2)", devNum, state)
+
     -- Switch on/off
     if type(state) == "string" then
         state = (tonumber(state) or 0) ~= 0
@@ -227,49 +252,51 @@ function actionPower(devNum, state)
 	setVar(HVACSTATESID, "ModeState", state and "Heating" or "Idle", devNum)
 
 	-- send command
-    if not state then
-		sendDeviceCommand(COMMANDS_SETPOWEROFF, "off", devNum)
-    else
-        sendDeviceCommand(COMMANDS_SETPOWER, "on", devNum)
-    end
+	sendDeviceCommand(state and COMMANDS_SETPOWER or COMMANDS_SETPOWEROFF, state and "on" or "off", devNum)
 end
 
 function updateSetpointAchieved(devNum)
-	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
+	local tNow = os.time()
+	local modeStatus, lastChanged = getVar(HVACSID, "ModeStatus", "Off", devNum)
 	local temp = getVarNumeric(TEMPSENSORSSID, "CurrentTemperature", 18, devNum)
-	local targetTemp = getVarNumeric(TEMPSETPOINTSID, "CurrentSetpoint", 18, devNum)
+	local targetTemp = getVarNumeric(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", 18, devNum)
 	
-	local achieved = false
-	if modeStatus == "HeatOn" and temp>=targetTemp then
-		achieved = true
+	lastChanged = lastChanged or tNow
+	local achieved = (modeStatus == "HeatOn" and temp>=targetTemp)
+
+	D("updateSetpointAchieved(%1, %2, %3, %4, %5)", modeStatus, temp, targetTemp, achieved, lastChanged)
+
+	-- TODO: implement cooldown, to prevent the device from being turned on/off too frequently
+	-- TODO: implement differential temp, to prevent bouncing
+	local bounceTimeoutSecs = 30 -- prevent bouncing -- TODO: make it a param
+	if (tNow - lastChanged <= bounceTimeoutSecs) then
+		D("updateSetpointAchieved: check for status")
+
+		setVar(TEMPSETPOINTSID, "SetpointAchieved", achieved and "1" or "0", devNum)
+		setVar(TEMPSETPOINTSID_HEAT, "SetpointAchieved", achieved and "1" or "0", devNum)
+
+		-- turn on if setpoint is not achieved
+		if not achieved and modeStatus == "Off" then -- not heating, start it
+			L("Turning on - achieved: %1 - status: %2", achieved == 1, modeStatus)
+			actionPower(devNum, 1)
+		end
+
+		-- setpoint achieved, turn it off
+		if achieved and modeStatus ~= "Off" then -- heating, stop it
+			L("Turning off - achieved: %1 - status: %2", achieved == 1, modeStatus)
+			actionPower(devNum, 0)
+		end
 	end
-
-	D('SetPointAchieved(%1, %2, %3, %4)', modeStatus, temp, targetTemp, achieved)
-
-	setVar(TEMPSETPOINTSID, "SetpointAchieved", achieved and "1" or "0", devNum)
-	setVar(TEMPSETPOINTSID_HEAT, "SetpointAchieved", achieved and "1" or "0", devNum)
 end
 
 -- change setpoint -- not really supported at the moment
 function actionSetCurrentSetpoint(devNum, newSetPoint)
 	D("actionSetCurrentSetpoint(%1,%2)", devNum, newSetPoint)
-	--deviceMessage(devNum, 'Action not supported', true)
 
-	-- TODO: change it with an HTTP call?
-	-- restore temp back to the one used by the sensor
-	updateSetpointAchieved(devNum)
-
+	-- just set variable, watch will do the real work
 	setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
-		-- compatibility with Heat
 	setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
 
-	-- turn on based on achieved status
-	-- TODO: turn off based on the same?
-	local achieved = getVarNumeric(TEMPSETPOINTSID, "SetpointAchieved", 0, devNum)
-	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
-	if achieved == 0 and modeStatus == "Off" then
-		actionPower(devNum, 1)
-	end
 end
 
 -- set energy mode
@@ -282,10 +309,12 @@ end
 
 -- change mode target
 function actionSetModeTarget(devNum, newMode)
+	if (newMode or "") == "" then newMode = "Off" end
     D("actionSetModeTarget(%1,%2)", devNum, newMode)
     
 	-- just set variable, watch will do the real work
     setVar(HVACSID, "ModeTarget", newMode, devNum)
+
     return true
 end
 
@@ -300,24 +329,33 @@ end
 -- Watch callback
 function thermostatWatch(devNum, sid, var, oldVal, newVal)
     D("thermostatWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
-
 	if oldVal == newVal then return end
+	devNum = tonumber(devNum)
 
 	if sid == HVACSID then
         if var == "ModeTarget" then
-			if newVal == "" then newVal = "Off" end -- AltUI+Openluup bug
+			if (newVal or "") == "" then newVal = "Off" end -- AltUI+Openluup bug
 			actionPower(devNum, (newVal == "Off" and "0" or "1"))
         elseif var == "ModeStatus" then
-            -- nothing to todo at the moment
+            -- nothing to to do at the moment
         end
 	elseif sid == TEMPSETPOINTSID then
-		if (newVal and "") ~= "" then
-			setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newVal, devNum)
+		if (newVal or "") ~= "" and var == "CurrentSetpoint" then
+			setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newVal, devNum) -- copy and keep it in sync
 		end
-		updateSetpointAchieved(devNum)
     elseif sid == TEMPSETPOINTSID_HEAT then
-		if (newVal and "") ~= "" then
-			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
+		if (newVal or "") ~= "" and var == "CurrentSetpoint" then
+			--setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
+			updateSetpointAchieved(devNum)
+		end
+	elseif sid == TEMPSENSORSSID then
+		-- update thermostat temp from external temp sensor
+		if (newVal or "") ~= "" and var == "CurrentTemperature" then
+			if devNum ~= deviceID	then
+				D("Temperature sync: %1", newVal)
+				setVar(TEMPSENSORSSID, "CurrentTemperature", newVal, deviceID)
+			end
+			updateSetpointAchieved(devNum)
 		end
     end
 end
@@ -336,6 +374,7 @@ function startPlugin(devNum)
 	initVar(TEMPSETPOINTSID, "CurrentSetpoint", "18", deviceID)
 	initVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", "18", deviceID)
 	initVar(TEMPSENSORSSID, "CurrentTemperature", "18", deviceID)
+	initVar(MYSID, "TemperatureDevice", "0", deviceID)
 
 	-- http calls init
     initVar(MYSID, COMMANDS_SETPOWER, DEFAULT_ENDPOINT, deviceID)
@@ -359,6 +398,16 @@ function startPlugin(devNum)
 	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", deviceID)
 	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", deviceID)
 	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", deviceID)
+
+	-- external temp sensor
+	local temperatureDeviceID = getVarNumeric(MYSID, "TemperatureDevice", 0, deviceID)
+	if temperatureDeviceID>0 then
+		local currentTemperature = getVarNumeric(TEMPSENSORSSID, "CurrentTemperature", 0, temperatureDeviceID)
+		D("Temperature startup sync: %1 - #%2", currentTemperature, temperatureDeviceID)
+		setVar(TEMPSENSORSSID, "CurrentTemperature", currentTemperature, deviceID)
+
+		luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", temperatureDeviceID)
+	end
 
 	setVar(HASID, "Configured", 1, deviceID)
 

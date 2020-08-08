@@ -1,7 +1,7 @@
 module("L_VirtualGenericSensor1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualGenericSensor"
-local _PLUGIN_VERSION = "1.4.2"
+local _PLUGIN_VERSION = "1.5.0"
 
 local debugMode = false
 
@@ -154,31 +154,50 @@ function deviceMessage(devID, message, error, timeout)
 end
 
 function httpGet(url)
-	local ltn12 = require('ltn12')
-	local http = require('socket.http')
-	local https = require("ssl.https")
-
-	local response, status, headers
+	local ltn12 = require("ltn12")
+	local _, async = pcall(require, "http_async")
 	local response_body = {}
+	
+	D("httpGet: %1", type(async) == "table" and "async" or "sync")
 
-	-- Handler for HTTP or HTTPS?
-	local requestor = url:lower():find("^https:") and https or http
-	response, status, headers = requestor.request{
-		method = "GET",
-		url = url,
-		headers = {
-			["Content-Type"] = "application/json; charset=utf-8",
-			["Connection"] = "keep-alive"
+	-- async
+	if type(async) == "table" then
+		-- Async Handler for HTTP or HTTPS
+		async.request(
+		{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
 		},
-		sink = ltn12.sink.table(response_body)
-	}
+		function (response, status, headers, statusline)
+			D("httpGet.Async: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+		end)
 
-	D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
-
-	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
-		return true, tostring(table.concat(response_body or ''))
+		return true, "" -- async requests are considered good unless they"re not
 	else
-		return false, nil
+		-- Sync Handler for HTTP or HTTPS
+		local requestor = url:lower():find("^https:") and require("ssl.https") or require("socket.http")
+		local response, status, headers = requestor.request{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
+		}
+
+		D("httpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+
+		if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
+			return true, tostring(table.concat(response_body or ""))
+		else
+			return false, nil
+		end
 	end
 end
 
@@ -243,7 +262,7 @@ function sensorWatch(devNum, sid, var, oldVal, newVal)
 			actionTripped(devNum, newVal or "0")
         end
 --    elseif sid == GENERICSENSORSID then
---		if (newVal and "") ~= "" then
+--		if (newVal or "") ~= "" then
 --			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
 --		end
     end

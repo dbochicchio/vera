@@ -69,7 +69,7 @@
 			<serviceId>urn:upnp-org:serviceId:HVAC_UserOperatingMode1</serviceId>
 			<name>SetModeTarget</name>
 			<run>
-				VirtualHeater1.actionSetModeTarget(lul_device, lul_settings.NewModeTarget)
+				VirtualHeater1.actionSetModeTarget(lul_device, lul_settings.NewModeTarget or lul_settings.NewMode)
 				return 4,0
 			</run>
 		</action>

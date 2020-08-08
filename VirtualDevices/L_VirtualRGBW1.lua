@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.4.2"
+local _PLUGIN_VERSION = "1.5.0"
 
 local debugMode = false
 
@@ -156,31 +156,50 @@ local function initVar(sid, name, dflt, dev)
 end
 
 function httpGet(url)
-	local ltn12 = require('ltn12')
-	local http = require('socket.http')
-	local https = require("ssl.https")
-
-	local response, status, headers
+	local ltn12 = require("ltn12")
+	local _, async = pcall(require, "http_async")
 	local response_body = {}
+	
+	D("httpGet: %1", type(async) == "table" and "async" or "sync")
 
-	-- Handler for HTTP or HTTPS?
-	local requestor = url:lower():find("^https:") and https or http
-	response, status, headers = requestor.request{
-		method = "GET",
-		url = url,
-		headers = {
-			["Content-Type"] = "application/json; charset=utf-8",
-			["Connection"] = "keep-alive"
+	-- async
+	if type(async) == "table" then
+		-- Async Handler for HTTP or HTTPS
+		async.request(
+		{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
 		},
-		sink = ltn12.sink.table(response_body)
-	}
+		function (response, status, headers, statusline)
+			D("httpGet.Async: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+		end)
 
-	D("HttpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
-
-	if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
-		return true, tostring(table.concat(response_body or ''))
+		return true, "" -- async requests are considered good unless they"re not
 	else
-		return false, nil
+		-- Sync Handler for HTTP or HTTPS
+		local requestor = url:lower():find("^https:") and require("ssl.https") or require("socket.http")
+		local response, status, headers = requestor.request{
+			method = "GET",
+			url = url,
+			headers = {
+				["Content-Type"] = "application/json; charset=utf-8",
+				["Connection"] = "keep-alive"
+			},
+			sink = ltn12.sink.table(response_body)
+		}
+
+		D("httpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+
+		if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
+			return true, tostring(table.concat(response_body or ""))
+		else
+			return false, nil
+		end
 	end
 end
 
@@ -191,13 +210,12 @@ local function sendDeviceCommand(cmd, params, devNum)
     if type(params) == "table" then
         for k, v in ipairs(params) do
             if type(v) == "string" then
-                pv[k] = v -- string.format( "%q", v )
+                pv[k] = v
             else
                 pv[k] = tostring(v)
             end
         end
     elseif type(params) == "string" then
-        -- table.insert( pv, string.format( "%q", params ) )
         table.insert(pv, params)
     elseif params ~= nil then
         table.insert(pv, tostring(params))
