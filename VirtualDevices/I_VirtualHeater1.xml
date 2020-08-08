@@ -4,8 +4,11 @@
 		function startupPlugin(devNum)
 			luup.log("VirtualHeater starting...")
 			VirtualHeater1 = require("L_VirtualHeater1")
-			thermostatWatch = VirtualHeater1.thermostatWatch
 			return VirtualHeater1.startPlugin(devNum)
+		end
+
+		function virtualThermostatWatch(devNum, sid, var, oldVal, newVal)
+			VirtualHeater1.virtualThermostatWatch(devNum, sid, var, oldVal, newVal)
 		end
 	</functions>
 	<startup>startupPlugin</startup>
@@ -33,7 +36,7 @@
 				return 4,0
 			</run>
 		</action>
-		
+
 		<action>
 			<serviceId>urn:upnp-org:serviceId:TemperatureSetpoint1</serviceId>
 			<name>SetCurrentSetpoint</name>

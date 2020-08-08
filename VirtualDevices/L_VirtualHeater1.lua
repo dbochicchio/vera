@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.5.0"
+local _PLUGIN_VERSION = "1.5.1"
 
 local debugMode = false
 
@@ -276,10 +276,10 @@ function updateSetpointAchieved(devNum)
 		setVar(TEMPSETPOINTSID_HEAT, "SetpointAchieved", achieved and "1" or "0", devNum)
 
 		-- turn on if setpoint is not achieved
-		if not achieved and modeStatus == "Off" then -- not heating, start it
-			L("Turning on - achieved: %1 - status: %2", achieved == 1, modeStatus)
-			actionPower(devNum, 1)
-		end
+--		if not achieved and modeStatus == "Off" then -- not heating, start it
+--			L("Turning on - achieved: %1 - status: %2", achieved == 1, modeStatus)
+--			actionPower(devNum, 1)
+--		end
 
 		-- setpoint achieved, turn it off
 		if achieved and modeStatus ~= "Off" then -- heating, stop it
@@ -289,14 +289,19 @@ function updateSetpointAchieved(devNum)
 	end
 end
 
--- change setpoint -- not really supported at the moment
+-- change setpoint
 function actionSetCurrentSetpoint(devNum, newSetPoint)
 	D("actionSetCurrentSetpoint(%1,%2)", devNum, newSetPoint)
 
-	-- just set variable, watch will do the real work
-	setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
-	setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
+	local modeStatus = getVar(HVACSID, "ModeStatus", "Off", devNum)
 
+	if modeStatus == "Off" then
+		-- on off, just ignore?
+	else
+		-- just set variable, watch will do the real work
+		setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
+		--setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
+	end
 end
 
 -- set energy mode
@@ -313,7 +318,12 @@ function actionSetModeTarget(devNum, newMode)
     D("actionSetModeTarget(%1,%2)", devNum, newMode)
     
 	-- just set variable, watch will do the real work
-    setVar(HVACSID, "ModeTarget", newMode, devNum)
+    local updated = setVar(HVACSID, "ModeTarget", newMode, devNum, true)
+
+	-- race condition: target is set, status is not updated
+	if not updated then
+		actionPower(devNum, (newMode == "Off" and "0" or "1"))
+	end
 
     return true
 end
@@ -327,30 +337,30 @@ function actionToggleState(devNum)
 end
 
 -- Watch callback
-function thermostatWatch(devNum, sid, var, oldVal, newVal)
-    D("thermostatWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
-	if oldVal == newVal then return end
+function virtualThermostatWatch(devNum, sid, var, oldVal, newVal)
+    D("virtualThermostatWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
+	local hasChanged = oldVal ~= newVal
 	devNum = tonumber(devNum)
 
 	if sid == HVACSID then
         if var == "ModeTarget" then
 			if (newVal or "") == "" then newVal = "Off" end -- AltUI+Openluup bug
+			-- no need to check is changed, because sometimes ModeTarget and ModeStatus are out of sync
 			actionPower(devNum, (newVal == "Off" and "0" or "1"))
         elseif var == "ModeStatus" then
             -- nothing to to do at the moment
         end
 	elseif sid == TEMPSETPOINTSID then
-		if (newVal or "") ~= "" and var == "CurrentSetpoint" then
+		if (newVal or "") ~= "" and var == "CurrentSetpoint" and hasChanged then
 			setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newVal, devNum) -- copy and keep it in sync
 		end
     elseif sid == TEMPSETPOINTSID_HEAT then
-		if (newVal or "") ~= "" and var == "CurrentSetpoint" then
-			--setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
+		if (newVal or "") ~= "" and var == "CurrentSetpoint" and hasChanged then
 			updateSetpointAchieved(devNum)
 		end
 	elseif sid == TEMPSENSORSSID then
 		-- update thermostat temp from external temp sensor
-		if (newVal or "") ~= "" and var == "CurrentTemperature" then
+		if (newVal or "") ~= "" and var == "CurrentTemperature" and hasChanged then
 			if devNum ~= deviceID	then
 				D("Temperature sync: %1", newVal)
 				setVar(TEMPSENSORSSID, "CurrentTemperature", newVal, deviceID)
@@ -393,11 +403,11 @@ function startPlugin(devNum)
 	end
 
 	-- watches
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeTarget", deviceID)
-    luup.variable_watch("thermostatWatch", HVACSID, "ModeStatus", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", deviceID)
-	luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", deviceID)
+    luup.variable_watch("virtualThermostatWatch", HVACSID, "ModeTarget", deviceID)
+    luup.variable_watch("virtualThermostatWatch", HVACSID, "ModeStatus", deviceID)
+	luup.variable_watch("virtualThermostatWatch", TEMPSETPOINTSID, "CurrentSetpoint", deviceID)
+	luup.variable_watch("virtualThermostatWatch", TEMPSETPOINTSID_HEAT, "CurrentSetpoint", deviceID)
+	luup.variable_watch("virtualThermostatWatch", TEMPSENSORSSID, "CurrentTemperature", deviceID)
 
 	-- external temp sensor
 	local temperatureDeviceID = getVarNumeric(MYSID, "TemperatureDevice", 0, deviceID)
@@ -406,7 +416,7 @@ function startPlugin(devNum)
 		D("Temperature startup sync: %1 - #%2", currentTemperature, temperatureDeviceID)
 		setVar(TEMPSENSORSSID, "CurrentTemperature", currentTemperature, deviceID)
 
-		luup.variable_watch("thermostatWatch", TEMPSENSORSSID, "CurrentTemperature", temperatureDeviceID)
+		luup.variable_watch("virtualThermostatWatch", TEMPSENSORSSID, "CurrentTemperature", temperatureDeviceID)
 	end
 
 	setVar(HASID, "Configured", 1, deviceID)
