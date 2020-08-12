@@ -95,6 +95,7 @@ For Tasmota: ```http://mydevice/cm?cmnd=Power+Toggle```
 For Shelly:``` http://mydevice/relay/0?turn=toggle```
 
 No params required.
+If omitted (blank value or 'http://'), the device will try to change the status according to the local current status. (1.5.1+).
 
 #### Dimming (Dimmers, RGB Lights, Window Covers/Roller Shutters/Blinds)
 Set *SetBrightnessURL* variable to the corresponding HTTP call.
@@ -184,7 +185,7 @@ This can be called with a short URL like this:
 http://*veraip*:3480/data_request?id=lr_updateSwitch&device=214&status=0
 ```
 
-This is intended to turn a switch on/off and can be adapted for other variables as well.
+This handler is intended to turn a switch on/off, but can be adapted for other variables as well.
 
 ### OpenLuup/ALTUI
 The devices are working and supported under OpenLuup and ALTUI. In this case, just be sure the get the base service file from Vera (it's automatic if you have the Vera Bridge installed).

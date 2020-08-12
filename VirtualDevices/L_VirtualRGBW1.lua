@@ -1,7 +1,7 @@
 module("L_VirtualRGBW1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualRGBW"
-local _PLUGIN_VERSION = "1.5.0"
+local _PLUGIN_VERSION = "1.5.1"
 
 local debugMode = false
 
@@ -58,15 +58,15 @@ local function dump(t, seen)
     return str
 end
 
-local function getVarNumeric(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVarNumeric(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     s = tonumber(s)
     return (s == nil) and dflt or s
 end
 
-local function getVar(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVar(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     return (s == nil) and dflt or s
 end
@@ -108,12 +108,12 @@ local function D(msg, ...)
 end
 
 -- Set variable, only if value has changed.
-local function setVar(sid, name, val, dev)
+local function setVar(sid, name, val, devNum)
     val = (val == nil) and "" or tostring(val)
-    local s = luup.variable_get(sid, name, dev) or ""
-    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, dev, s)
+    local s = luup.variable_get(sid, name, devNum) or ""
+    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, devNum, s)
     if s ~= val then
-        luup.variable_set(sid, name, val, dev)
+        luup.variable_set(sid, name, val, devNum)
         return true, s
     end
     return false, s
@@ -146,10 +146,10 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(sid, name, dflt, dev)
-    local currVal = luup.variable_get(sid, name, dev)
+local function initVar(sid, name, dflt, devNum)
+    local currVal = luup.variable_get(sid, name, devNum)
     if currVal == nil then
-        luup.variable_set(sid, name, tostring(dflt), dev)
+        luup.variable_set(sid, name, tostring(dflt), devNum)
         return tostring(dflt)
     end
     return currVal
@@ -228,20 +228,20 @@ local function sendDeviceCommand(cmd, params, devNum)
     return false
 end
 
-local function restoreBrightness(dev)
+local function restoreBrightness(devNum)
     -- Restore brightness
-    local brightness = getVarNumeric(DIMMERSID, "LoadLevelLast", 0, dev)
-	local brightnessCurrent = getVarNumeric(DIMMERSID, "LoadLevelStatus", 0, dev)
+    local brightness = getVarNumeric(DIMMERSID, "LoadLevelLast", 0, devNum)
+	local brightnessCurrent = getVarNumeric(DIMMERSID, "LoadLevelStatus", 0, devNum)
 
     if brightness > 0 and brightnessCurrent ~= brightness then
-		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, dev)
-		setVar(DIMMERSID, "LoadLevelTarget", brightness, dev)
-		setVar(DIMMERSID, "LoadLevelStatus", brightness, dev)
-		setVar(DIMMERSID, "LoadLevelLast", brightness, dev)
+		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, devNum)
+		setVar(DIMMERSID, "LoadLevelTarget", brightness, devNum)
+		setVar(DIMMERSID, "LoadLevelStatus", brightness, devNum)
+		setVar(DIMMERSID, "LoadLevelLast", brightness, devNum)
     end
 end
 
-function actionPower(state, dev)
+function actionPower(state, devNum)
     -- Switch on/off
     if type(state) == "string" then
         state = (tonumber(state) or 0) ~= 0
@@ -249,20 +249,20 @@ function actionPower(state, dev)
         state = state ~= 0
     end
 
-    setVar(SWITCHSID, "Target", state and "1" or "0", dev)
-    setVar(SWITCHSID, "Status", state and "1" or "0", dev)
+    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
+    setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
     -- UI needs LoadLevelTarget/Status to comport with state according to Vera's rules.
     if not state then
-			sendDeviceCommand(COMMANDS_SETPOWER, "off", dev)
-			setVar(DIMMERSID, "LoadLevelTarget", 0, dev)
-			setVar(DIMMERSID, "LoadLevelStatus", 0, dev)
+			sendDeviceCommand(COMMANDS_SETPOWER, "off", devNum)
+			setVar(DIMMERSID, "LoadLevelTarget", 0, devNum)
+			setVar(DIMMERSID, "LoadLevelStatus", 0, devNum)
     else
-        sendDeviceCommand(COMMANDS_SETPOWER, "on", dev)
-		restoreBrightness(dev)
+        sendDeviceCommand(COMMANDS_SETPOWER, "on", devNum)
+		restoreBrightness(devNum)
     end
 end
 
-function actionBrightness(newVal, dev)
+function actionBrightness(newVal, devNum)
     -- Dimming level change
     newVal = tonumber(newVal) or 100
     if newVal < 0 then
@@ -272,26 +272,26 @@ function actionBrightness(newVal, dev)
     end -- range
     if newVal > 0 then
         -- Level > 0, if light is off, turn it on.
-        local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
+        local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
         if status == 0 then
-            sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
-            setVar(SWITCHSID, "Target", 1, dev)
-            setVar(SWITCHSID, "Status", 1, dev)
+            sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, devNum)
+            setVar(SWITCHSID, "Target", 1, devNum)
+            setVar(SWITCHSID, "Status", 1, devNum)
         end
-        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, dev)
-    elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, dev) ~= 0 then
+        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, devNum)
+    elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, devNum) ~= 0 then
         -- Level 0 allowed as on state, just go with it.
-        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, dev)
+        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, devNum)
     else
         -- Level 0 (not allowed as an "on" state), switch light off.
-        sendDeviceCommand(COMMANDS_SETPOWER, {"off"}, dev)
-        setVar(SWITCHSID, "Target", 0, dev)
-        setVar(SWITCHSID, "Status", 0, dev)
+        sendDeviceCommand(COMMANDS_SETPOWER, {"off"}, devNum)
+        setVar(SWITCHSID, "Target", 0, devNum)
+        setVar(SWITCHSID, "Status", 0, devNum)
     end
-    setVar(DIMMERSID, "LoadLevelTarget", newVal, dev)
-    setVar(DIMMERSID, "LoadLevelStatus", newVal, dev)
+    setVar(DIMMERSID, "LoadLevelTarget", newVal, devNum)
+    setVar(DIMMERSID, "LoadLevelStatus", newVal, devNum)
 
-    if newVal > 0 then setVar(DIMMERSID, "LoadLevelLast", newVal, dev) end
+    if newVal > 0 then setVar(DIMMERSID, "LoadLevelLast", newVal, devNum) end
 end
 
 -- Approximate RGB from color temperature. We don't both with most of the algorithm
@@ -338,14 +338,14 @@ local function decodeColor(color)
     return false
 end
 
-function actionSetColor(newVal, dev, sendToDevice)
-    D("actionSetColor(%1,%2)", newVal, dev)
+function actionSetColor(newVal, devNum, sendToDevice)
+    D("actionSetColor(%1,%2)", newVal, devNum)
 
-    local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
+    local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
     if status == 0 and sendToDevice then
-        sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
-        setVar(SWITCHSID, "Target", 1, dev)
-        setVar(SWITCHSID, "Status", 1, dev)
+        sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, devNum)
+        setVar(SWITCHSID, "Target", 1, devNum)
+        setVar(SWITCHSID, "Status", 1, devNum)
     end
     local w, c, r, g, b
 
@@ -359,14 +359,14 @@ function actionSetColor(newVal, dev, sendToDevice)
 		D("RGB(%1,%2,%3)", r, g, b)
         -- local rgb = r * 65536 + g * 256 + b
 		if r ~= nil and g  ~= nil and  b ~= nil and sendToDevice then
-			sendDeviceCommand(COMMANDS_SETRGBCOLOR, {r, g, b}, dev)
+			sendDeviceCommand(COMMANDS_SETRGBCOLOR, {r, g, b}, devNum)
 		end
 
-		restoreBrightness(dev)
+		restoreBrightness(devNum)
     else
         -- Wnnn, Dnnn (color range)
-        local tempMin = getVarNumeric(MYSID, "MinTemperature", 1600, dev)
-        local tempMax = getVarNumeric(MYSID, "MaxTemperature", 6500, dev)
+        local tempMin = getVarNumeric(MYSID, "MinTemperature", 1600, devNum)
+        local tempMax = getVarNumeric(MYSID, "MaxTemperature", 6500, devNum)
         local code, temp = newVal:upper():match("([WD])(%d+)")
         local t
         if code == "W" then
@@ -417,21 +417,32 @@ function actionSetColor(newVal, dev, sendToDevice)
         end
 
 		if sendToDevice then
-			sendDeviceCommand(COMMANDS_SETWHITETEMPERATURE, {temp}, dev)
+			sendDeviceCommand(COMMANDS_SETWHITETEMPERATURE, {temp}, devNum)
 		end
-		restoreBrightness(dev)
+		restoreBrightness(devNum)
 
         r, g, b = approximateRGB(temp)
 		D("aprox RGB(%1,%2,%3)", r, g, b)
     end
 
 	local targetColor = string.format("0=%d,1=%d,2=%d,3=%d,4=%d", w, c, r, g, b)
-    setVar(COLORSID, "CurrentColor", targetColor , dev)
-    setVar(COLORSID, "TargetColor", targetColor, dev)
+    setVar(COLORSID, "CurrentColor", targetColor, devNum)
+    setVar(COLORSID, "TargetColor", targetColor, devNum)
 end
 
 -- Toggle state
-function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
+function actionToggleState(devNum)
+	local cmdUrl = getVar(MYSID, COMMANDS_TOGGLE, DEFAULT_ENDPOINT, devNum)
+	
+	if (cmdUrl == DEFAULT_ENDPOINT or cmdUrl == "") then
+		-- toggle by using the current state
+		local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
+		actionPower(devNum, status == 1 and 0 or 1)
+	else
+		-- toggle command specifically defined
+		sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum)
+	end
+end
 
 function startPlugin(devNum)
 	L("Plugin starting[%3]: %1 - %2", _PLUGIN_NAME, _PLUGIN_VERSION, devNum)
@@ -467,7 +478,9 @@ function startPlugin(devNum)
 		luup.attr_set("category_num", "2", deviceID)
 		luup.attr_set("subcategory_num", "4", deviceID)
 	end
+
 	setVar(HASID, "Configured", 1, deviceID)
+	setVar(HASID, "CommFailure", 0, deviceID)
 
     -- status
     luup.set_failure(0, deviceID)

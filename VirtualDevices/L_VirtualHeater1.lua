@@ -52,15 +52,15 @@ local function dump(t, seen)
     return str
 end
 
-local function getVarNumeric(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVarNumeric(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     s = tonumber(s)
     return (s == nil) and dflt or s
 end
 
-local function getVar(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVar(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     return (s == nil) and dflt or s
 end
@@ -102,12 +102,12 @@ local function D(msg, ...)
 end
 
 -- Set variable, only if value has changed.
-local function setVar(sid, name, val, dev)
+local function setVar(sid, name, val, devNum)
     val = (val == nil) and "" or tostring(val)
-    local s = luup.variable_get(sid, name, dev) or ""
-    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, dev, s)
+    local s = luup.variable_get(sid, name, devNum) or ""
+    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, devNum, s)
     if s ~= val then
-        luup.variable_set(sid, name, val, dev)
+        luup.variable_set(sid, name, val, devNum)
         return true, s
     end
     return false, s
@@ -140,20 +140,20 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(sid, name, dflt, dev)
-    local currVal = luup.variable_get(sid, name, dev)
+local function initVar(sid, name, dflt, devNum)
+    local currVal = luup.variable_get(sid, name, devNum)
     if currVal == nil then
-        luup.variable_set(sid, name, tostring(dflt), dev)
+        luup.variable_set(sid, name, tostring(dflt), devNum)
         return tostring(dflt)
     end
     return currVal
 end
 
-function deviceMessage(devID, message, error, timeout)
+function deviceMessage(devNum, message, error, timeout)
 	local status = error and 2 or 4
 	timeout = timeout or 15
-	D("deviceMessage(%1,%2,%3,%4)", devID, message, error, timeout)
-	luup.device_message(devID, status, message, timeout, _PLUGIN_NAME)
+	D("deviceMessage(%1,%2,%3,%4)", devNum, message, error, timeout)
+	luup.device_message(devNum, status, message, timeout, _PLUGIN_NAME)
 end
 
 function httpGet(url)
@@ -330,10 +330,9 @@ end
 
 -- Toggle state
 function actionToggleState(devNum) 
-	D("actionToggleState(%1)", dev)
+	D("actionToggleState(%1)", devNum)
 	local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
-	if status == 1 then status = 0 else status = 1 end
-	actionPower(devNum, status)
+	actionPower(devNum, status == 1 and 0 or 1)
 end
 
 -- Watch callback
@@ -420,6 +419,7 @@ function startPlugin(devNum)
 	end
 
 	setVar(HASID, "Configured", 1, deviceID)
+	setVar(HASID, "CommFailure", 0, deviceID)
 
     -- status
     luup.set_failure(0, deviceID)

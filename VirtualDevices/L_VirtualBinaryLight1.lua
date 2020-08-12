@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.5.0"
+local _PLUGIN_VERSION = "1.5.1"
 
 local debugMode = false
 local deviceID = -1
@@ -52,15 +52,15 @@ local function dump(t, seen)
     return str
 end
 
-local function getVarNumeric(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVarNumeric(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     s = tonumber(s)
     return (s == nil) and dflt or s
 end
 
-local function getVar(sid, name, dflt, dev)
-    local s = luup.variable_get(sid, name, dev) or ""
+local function getVar(sid, name, dflt, devNum)
+    local s = luup.variable_get(sid, name, devNum) or ""
     if s == "" then return dflt end
     return (s == nil) and dflt or s
 end
@@ -102,12 +102,12 @@ local function D(msg, ...)
 end
 
 -- Set variable, only if value has changed.
-local function setVar(sid, name, val, dev)
+local function setVar(sid, name, val, devNum)
     val = (val == nil) and "" or tostring(val)
-    local s = luup.variable_get(sid, name, dev) or ""
-    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, dev, s)
+    local s = luup.variable_get(sid, name, devNum) or ""
+    D("setVar(%1,%2,%3,%4) old value %5", sid, name, val, devNum, s)
     if s ~= val then
-        luup.variable_set(sid, name, val, dev)
+        luup.variable_set(sid, name, val, devNum)
         return true, s
     end
     return false, s
@@ -140,10 +140,10 @@ local function map(arr, f, res)
     return res
 end
 
-local function initVar(sid, name, dflt, dev)
-    local currVal = luup.variable_get(sid, name, dev)
+local function initVar(sid, name, dflt, devNum)
+    local currVal = luup.variable_get(sid, name, devNum)
     if currVal == nil then
-        luup.variable_set(sid, name, tostring(dflt), dev)
+        luup.variable_set(sid, name, tostring(dflt), devNum)
         return tostring(dflt)
     end
     return currVal
@@ -154,7 +154,7 @@ function httpGet(url)
 	local _, async = pcall(require, "http_async")
 	local response_body = {}
 	
-	D("httpGet: %1", type(async) == "table" and "async" or "sync")
+	D("httpGet(%1)", type(async) == "table" and "async" or "sync")
 
 	-- async
 	if type(async) == "table" then
@@ -170,7 +170,7 @@ function httpGet(url)
 			sink = ltn12.sink.table(response_body)
 		},
 		function (response, status, headers, statusline)
-			D("httpGet.Async: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+			D("httpGet.Async(%1, %2, %3, %4)", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 		end)
 
 		return true, "" -- async requests are considered good unless they"re not
@@ -187,7 +187,7 @@ function httpGet(url)
 			sink = ltn12.sink.table(response_body)
 		}
 
-		D("httpGet: %1 - %2 - %3 - %4", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
+		D("httpGet(%1, %2, %3, %4)", url, (response or ""), tostring(status), tostring(table.concat(response_body or "")))
 
 		if status ~= nil and type(status) == "number" and tonumber(status) >= 200 and tonumber(status) < 300 then
 			return true, tostring(table.concat(response_body or ""))
@@ -216,25 +216,25 @@ local function sendDeviceCommand(cmd, params, devNum)
     end
     local pstr = table.concat(pv, ",")
 
-    local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum) or DEFAULT_ENDPOINT
+    local cmdUrl = getVar(MYSID, cmd, DEFAULT_ENDPOINT, devNum)
     if (cmdUrl ~= DEFAULT_ENDPOINT) then return httpGet(string.format(cmdUrl, pstr)) end
 
     return false
 end
 
-local function restoreBrightness(dev)
+local function restoreBrightness(devNum)
     -- Restore brightness
-    local brightness = getVarNumeric(DIMMERSID, "LoadLevelLast", 0, dev)
-	local brightnessCurrent = getVarNumeric(DIMMERSID, "LoadLevelStatus", 0, dev)
+    local brightness = getVarNumeric(DIMMERSID, "LoadLevelLast", 0, devNum)
+	local brightnessCurrent = getVarNumeric(DIMMERSID, "LoadLevelStatus", 0, devNum)
 
     if brightness > 0 and brightnessCurrent ~= brightness then
-		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, dev)
-		setVar(DIMMERSID, "LoadLevelTarget", brightness, dev)
-		setVar(DIMMERSID, "LoadLevelStatus", brightness, dev)
+		sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {brightness}, devNum)
+		setVar(DIMMERSID, "LoadLevelTarget", brightness, devNum)
+		setVar(DIMMERSID, "LoadLevelStatus", brightness, devNum)
     end
 end
 
-function actionPower(state, dev)
+function actionPower(state, devNum)
     -- Switch on/off
     if type(state) == "string" then
         state = (tonumber(state) or 0) ~= 0
@@ -246,25 +246,25 @@ function actionPower(state, dev)
 	local isDimmer = deviceType == "D_DimmableLight1.xml"
 	local isBlind = deviceType == "D_WindowCovering1.xml"
 
-    setVar(SWITCHSID, "Target", state and "1" or "0", dev)
-    setVar(SWITCHSID, "Status", state and "1" or "0", dev)
+    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
+    setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
 
     -- UI needs LoadLevelTarget/Status to conform with state according to Vera's rules.
     if not state then
-			sendDeviceCommand(COMMANDS_SETPOWEROFF, "off", dev)
+			sendDeviceCommand(COMMANDS_SETPOWEROFF, "off", devNum)
 			if isDimmer or isBlind then
-				setVar(DIMMERSID, "LoadLevelTarget", 0, dev)
-				setVar(DIMMERSID, "LoadLevelStatus", 0, dev)
+				setVar(DIMMERSID, "LoadLevelTarget", 0, devNum)
+				setVar(DIMMERSID, "LoadLevelStatus", 0, devNum)
 			end
     else
-        sendDeviceCommand(COMMANDS_SETPOWER, "on", dev)
+        sendDeviceCommand(COMMANDS_SETPOWER, "on", devNum)
 		if isDimmer then
-			restoreBrightness(dev)
+			restoreBrightness(devNum)
 		end
     end
 end
 
-function actionBrightness(newVal, dev)
+function actionBrightness(newVal, devNum)
 	-- dimmer or not?
 	local isDimmer = deviceType == "D_DimmableLight1.xml"
 	local isBlind = deviceType == "D_WindowCovering1.xml"
@@ -280,31 +280,44 @@ function actionBrightness(newVal, dev)
     if newVal > 0 then
         -- Level > 0, if light is off, turn it on.
 		if isDimmer then
-			local status = getVarNumeric(SWITCHSID, "Status", 0, dev)
+			local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
 			if status == 0 then
-				sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, dev)
-				setVar(SWITCHSID, "Target", 1, dev)
-				setVar(SWITCHSID, "Status", 1, dev)
+				sendDeviceCommand(COMMANDS_SETPOWER, {"on"}, devNum)
+				setVar(SWITCHSID, "Target", 1, devNum)
+				setVar(SWITCHSID, "Status", 1, devNum)
 			end
 		end
 
-        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, dev)
-    elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, dev) ~= 0 then
+        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, devNum)
+    elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, devNum) ~= 0 then
         -- Level 0 allowed as on state, just go with it.
-        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, dev)
+        sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, devNum)
     else
         -- Level 0 (not allowed as an "on" state), switch light off.
-        sendDeviceCommand(COMMANDS_SETPOWEROFF, {"off"}, dev)
-        setVar(SWITCHSID, "Target", 0, dev)
-        setVar(SWITCHSID, "Status", 0, dev)
+        sendDeviceCommand(COMMANDS_SETPOWEROFF, {"off"}, devNum)
+        setVar(SWITCHSID, "Target", 0, devNum)
+        setVar(SWITCHSID, "Status", 0, devNum)
     end
-    setVar(DIMMERSID, "LoadLevelTarget", newVal, dev)
-    setVar(DIMMERSID, "LoadLevelStatus", newVal, dev)
-    if newVal > 0 then setVar(DIMMERSID, "LoadLevelLast", newVal, dev) end
+    setVar(DIMMERSID, "LoadLevelTarget", newVal, devNum)
+    setVar(DIMMERSID, "LoadLevelStatus", newVal, devNum)
+    if newVal > 0 then setVar(DIMMERSID, "LoadLevelLast", newVal, devNum) end
 end
 
 -- Toggle state
-function actionToggleState(devNum) sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum) end
+function actionToggleState(devNum)
+	D("actionToggleState(%1)", devNum)
+
+	local cmdUrl = getVar(MYSID, COMMANDS_TOGGLE, DEFAULT_ENDPOINT, devNum)
+	
+	if (cmdUrl == DEFAULT_ENDPOINT or cmdUrl == "") then
+		-- toggle by using the current state
+		local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
+		actionPower(devNum, status == 1 and 0 or 1)
+	else
+		-- toggle command specifically defined
+		sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum)
+	end
+end
 
 -- stop for blinds
 function actionStop(devNum) sendDeviceCommand(COMMANDS_MOVESTOP, nil, devNum) end
@@ -373,6 +386,7 @@ function startPlugin(devNum)
 	end
 
 	setVar(HASID, "Configured", 1, deviceID)
+	setVar(HASID, "CommFailure", 0, deviceID)
 
     -- status
     luup.set_failure(0, deviceID)
