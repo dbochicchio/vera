@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "1.5.1"
+local _PLUGIN_VERSION = "1.5.2"
 
 local debugMode = false
 local deviceID = -1
@@ -312,8 +312,12 @@ function actionToggleState(devNum)
 	if (cmdUrl == DEFAULT_ENDPOINT or cmdUrl == "") then
 		-- toggle by using the current state
 		local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
-		actionPower(devNum, status == 1 and 0 or 1)
+		actionPower(status == 1 and 0 or 1, devNum)
 	else
+		-- update variables
+	    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
+		setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
+
 		-- toggle command specifically defined
 		sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum)
 	end

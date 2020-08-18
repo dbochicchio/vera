@@ -1,7 +1,7 @@
 module("L_VirtualHeater1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualHeater"
-local _PLUGIN_VERSION = "1.5.1"
+local _PLUGIN_VERSION = "1.5.2"
 
 local debugMode = false
 
@@ -262,7 +262,7 @@ function updateSetpointAchieved(devNum)
 	local targetTemp = getVarNumeric(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", 18, devNum)
 	
 	lastChanged = lastChanged or tNow
-	local achieved = (modeStatus == "HeatOn" and temp>=targetTemp)
+	local achieved = (modeStatus == "HeatOn" and temp>targetTemp)
 
 	D("updateSetpointAchieved(%1, %2, %3, %4, %5)", modeStatus, temp, targetTemp, achieved, lastChanged)
 
@@ -286,6 +286,8 @@ function updateSetpointAchieved(devNum)
 			L("Turning off - achieved: %1 - status: %2", achieved == 1, modeStatus)
 			actionPower(devNum, 0)
 		end
+	else
+		D("updateSetpointAchieved: bounced (%1, %2)", tNow - lastChanged, bounceTimeoutSecs)
 	end
 end
 
@@ -300,7 +302,6 @@ function actionSetCurrentSetpoint(devNum, newSetPoint)
 	else
 		-- just set variable, watch will do the real work
 		setVar(TEMPSETPOINTSID, "CurrentSetpoint", newSetPoint, devNum)
-		--setVar(TEMPSETPOINTSID_HEAT, "CurrentSetpoint", newSetPoint, devNum)
 	end
 end
 
