@@ -234,23 +234,23 @@ local function restoreBrightness(devNum)
     end
 end
 
-function actionPower(state, devNum)
+function actionPower(status, devNum)
     -- Switch on/off
-    if type(state) == "string" then
-        state = (tonumber(state) or 0) ~= 0
-    elseif type(state) == "number" then
-        state = state ~= 0
+    if type(status) == "string" then
+        status = (tonumber(status) or 0) ~= 0
+    elseif type(status) == "number" then
+        status = status ~= 0
     end
 
 	-- dimmer or not?
 	local isDimmer = deviceType == "D_DimmableLight1.xml"
 	local isBlind = deviceType == "D_WindowCovering1.xml"
 
-    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
-    setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
+    setVar(SWITCHSID, "Target", status and "1" or "0", devNum)
+    setVar(SWITCHSID, "Status", status and "1" or "0", devNum)
 
-    -- UI needs LoadLevelTarget/Status to conform with state according to Vera's rules.
-    if not state then
+    -- UI needs LoadLevelTarget/Status to conform with status according to Vera's rules.
+    if not status then
 			sendDeviceCommand(COMMANDS_SETPOWEROFF, "off", devNum)
 			if isDimmer or isBlind then
 				setVar(DIMMERSID, "LoadLevelTarget", 0, devNum)
@@ -290,10 +290,10 @@ function actionBrightness(newVal, devNum)
 
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {newVal}, devNum)
     elseif getVarNumeric(DIMMERSID, "AllowZeroLevel", 0, devNum) ~= 0 then
-        -- Level 0 allowed as on state, just go with it.
+        -- Level 0 allowed as on status, just go with it.
         sendDeviceCommand(COMMANDS_SETBRIGHTNESS, {0}, devNum)
     else
-        -- Level 0 (not allowed as an "on" state), switch light off.
+        -- Level 0 (not allowed as an "on" status), switch light off.
         sendDeviceCommand(COMMANDS_SETPOWEROFF, {"off"}, devNum)
         setVar(SWITCHSID, "Target", 0, devNum)
         setVar(SWITCHSID, "Status", 0, devNum)
@@ -305,18 +305,17 @@ end
 
 -- Toggle state
 function actionToggleState(devNum)
-	D("actionToggleState(%1)", devNum)
-
 	local cmdUrl = getVar(MYSID, COMMANDS_TOGGLE, DEFAULT_ENDPOINT, devNum)
-	
+
+	local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
+
 	if (cmdUrl == DEFAULT_ENDPOINT or cmdUrl == "") then
-		-- toggle by using the current state
-		local status = getVarNumeric(SWITCHSID, "Status", 0, devNum)
+		-- toggle by using the current status
 		actionPower(status == 1 and 0 or 1, devNum)
 	else
 		-- update variables
-	    setVar(SWITCHSID, "Target", state and "1" or "0", devNum)
-		setVar(SWITCHSID, "Status", state and "1" or "0", devNum)
+	    setVar(SWITCHSID, "Target", status == 1 and 0 or 1, devNum)
+		setVar(SWITCHSID, "Status", status == 1 and 0 or 1, devNum)
 
 		-- toggle command specifically defined
 		sendDeviceCommand(COMMANDS_TOGGLE, nil, devNum)
