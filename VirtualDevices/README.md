@@ -24,8 +24,8 @@ Async HTTP is strongly recommended. The plug-in will automatically detect it and
 # Async Update of commands
 Version 2.0 introduced support for async updates of device's commands.
 If you want to automatically acknowledge the command, simply return a status code from 200 (included) to 400 (excluded). That's what devices will do anyway.
-If you want to control the result, simply return something a different status code (ie 112) and then update the variable on your own.
-This is useful if you have an API that supports retry logic and you want to reflect the real status of the external device.
+If you want to control the result, simply return a different status code (ie 112) and then update the variable on your own via Vera/Openluup HTTP interface.
+This is useful if you have an API that supports retry logic and you want to reflect the real status of the external devices.
 
 # Create a new device
 To create a new device, got to Apps, then Develops, then Create device.
@@ -83,6 +83,7 @@ Support for master devices is not ready yet.
 - Upnp Implementation Filename/Implementation file: *I_VirtualSceneController1.xml*
 
 This defaults to 3 buttons with single, double, triple press support, but you can modify it. Look for [official doc]((http://wiki.mios.com/index.php/Luup_UPnP_Variables_and_Actions#SceneController1) for more info.
+This device will not perform any action, but just receive input from an external device to simulate a scene controller, attached to scenes.
 
 ### Configuration
 All devices are auto-configuring. At its first run, the code will create all the variables and set the category/sub_category numbers, for optimal compatibility. 
