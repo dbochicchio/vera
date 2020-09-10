@@ -13,7 +13,7 @@
 			<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
 			<name>SetTarget</name>
 			<run>
-				VirtualBinaryLight1.actionPower(lul_settings.newTargetValue,lul_device)
+				VirtualBinaryLight1.actionPower(lul_settings.newTargetValue, lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -28,7 +28,7 @@
 			<serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
 			<name>SetLoadLevelTarget</name>
 			<run>
-				VirtualBinaryLight1.actionBrightness(lul_settings.newLoadlevelTarget,lul_device)
+				VirtualBinaryLight1.actionBrightness(lul_settings.newLoadlevelTarget, lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -36,7 +36,7 @@
 			<serviceId>urn:upnp-org:serviceId:WindowCovering1</serviceId>
 			<name>Up</name>
 			<run>
-				VirtualBinaryLight1.actionBrightness(100,lul_device)
+				VirtualBinaryLight1.actionBrightness(100, lul_device)
 				return 4,0
 			</run>
 		</action>
@@ -44,7 +44,7 @@
 			<serviceId>urn:upnp-org:serviceId:WindowCovering1</serviceId>
 			<name>Down</name>
 			<run>
-				VirtualBinaryLight1.actionBrightness(0,lul_device)
+				VirtualBinaryLight1.actionBrightness(0, lul_device)
 				return 4,0
 			</run>
 		</action>

@@ -1,18 +1,15 @@
-module("L_VirtualGenericSensor1", package.seeall)
+module("L_VirtualSceneController1", package.seeall)
 
-local _PLUGIN_NAME = "VirtualGenericSensor"
+local _PLUGIN_NAME = "VirtualSceneController1"
 local _PLUGIN_VERSION = "2.0.0 "
 
 local debugMode = false
 
-local MYSID									= "urn:bochicchio-com:serviceId:VirtualGenericSensor1"
-local SECURITYSID							= "urn:micasaverde-com:serviceId:SecuritySensor1"
+local MYSID									= "urn:bochicchio-com:serviceId:VirtualSceneController1"
+local SCENESID								= "urn:micasaverde-com:serviceId:SceneController1"
+local SCENELEDSID							= "urn:micasaverde-com:serviceId:SceneControllerLED1"
 local HASID									= "urn:micasaverde-com:serviceId:HaDevice1"
 
-local COMMANDS_TRIPPED						= "SetTrippedURL"
-local COMMANDS_UNTRIPPED					= "SetUnTrippedURL"
-local COMMANDS_ARMED						= "SetArmedURL"
-local COMMANDS_UNARMED						= "SetUnArmedURL"
 local DEFAULT_ENDPOINT						= "http://"
 
 local deviceID = -1
@@ -252,50 +249,22 @@ local function sendDeviceCommand(cmd, params, devNum, onSuccess)
 	return false
 end
 
--- turn on/off compatibility
-function actionArmed(devNum, state)
-	state = tostring(state or "0")
-	
-	D(devNum, "actionArmed(%1,%2,%3)", devNum, state, state == "1" and COMMANDS_ARMED or COMMANDS_UNARMED)
-
-	setVar(SECURITYSID, "Armed", state, devNum)
-
-	-- no need to update ArmedTripped, it will be automatic
-
-	-- send command
-	sendDeviceCommand(state == "1" and COMMANDS_ARMED or COMMANDS_UNARMED, state, devNum)
-end
-
-function actionTripped(devNum, state)
-	-- no need to update LastTrip, it will be automatic
-	state = tostring(state or "0")
-
-	D(devNum, "actionTripped(%1,%2,%3)", devNum, state, state == "1" and COMMANDS_TRIPPED or COMMANDS_UNTRIPPED)
-
-	-- send command
-	sendDeviceCommand(state == "1" and COMMANDS_TRIPPED or COMMANDS_UNTRIPPED, state, devNum)
-end
-
 -- Watch callback
 function sensorWatch(devNum, sid, var, oldVal, newVal)
 	D(devNum, "sensorWatch(%1,%2,%3,%4,%5)", devNum, sid, var, oldVal, newVal)
 
-	if oldVal == newVal then return end
+	--if oldVal == newVal then return end
 
-	if sid == SECURITYSID then
-		if var == "Tripped" then
-			actionTripped(devNum, newVal or "0")
+	if sid == SCENESID then
+		if var == "sl_SceneActivated" then
+			setVar(SCENESID, "LastSceneID", newVal, devNum)
+			setVar(SCENESID, "LastSceneTime", os.time(), devNum)
 		end
---	elseif sid == GENERICSENSORSID then
---		if (newVal or "") ~= "" then
---			setVar(TEMPSETPOINTSID, "CurrentSetpoint", newVal, devNum)
---		end
 	end
 end
 
 function startPlugin(devNum)
 	L(devNum, "Plugin starting")
-
 
 	-- enumerate children
 	local children = getChildren(devNum)
@@ -304,38 +273,29 @@ function startPlugin(devNum)
 
 		-- generic init
 		initVar(MYSID, "DebugMode", 0, deviceID)
+		setVar(HASID, "CommFailure", 0, deviceID)
 
-		-- sensors init
-		initVar(SECURITYSID, "Armed", "0", deviceID)
-		initVar(SECURITYSID, "Tripped", "0", deviceID)
-
-		-- http calls init
-		local commandTripped = initVar(MYSID, COMMANDS_TRIPPED, DEFAULT_ENDPOINT, deviceID)
-		local commandArmed = initVar(MYSID, COMMANDS_ARMED, DEFAULT_ENDPOINT, deviceID)
-
-		-- upgrade code
-		initVar(MYSID, COMMANDS_UNTRIPPED, commandTripped, deviceID)
-		initVar(MYSID, COMMANDS_UNARMED, commandArmed, deviceID)
+		-- scene controller init
+		initVar(SCENESID, "NumButtons", "15,1-1-1=ui7_lang_tap_button 1,2-1-2=ui7_lang_double_tap_button 1,3-1-3=ui7_lang_triple_tap_button 1,4-1-4=ui7_lang_hold_button 1,5-1-5=ui7_lang_release_button 1,6-1-6=ui7_lang_tap_button 2,7-1-7=ui7_lang_double_tap_button 2,8-1-8=ui7_lang_triple_tap_button 2,9-1-9=ui7_lang_hold_button 2,10-1-10=ui7_lang_release_button 2,11-1-6=ui7_lang_tap_button 3,12-1-7=ui7_lang_double_tap_button 3,13-1-8=ui7_lang_triple_tap_button 3,14-1-9=ui7_lang_hold_button 3,15-1-10=ui7_lang_release_button 3", deviceID)
+		initVar(SCENESID, "ButtonMapping", "1-0-1,1-3-2,1-4-3,1-2-4,1-1-5,2-0-6,2-3-7,2-4-8,2-2-9,2-1-10,3-0-11,3-3-12,3-4-13,3-2-14,3-1-15", deviceID)
 
 		-- set at first run, then make it configurable
 		if luup.attr_get("category_num", deviceID) == nil then
-			local category_num = 4
+			local category_num = 14
 			luup.attr_set("category_num", category_num, deviceID) -- security sensor
 		end
 
-		-- set at first run, then make it configurable
-		local subcategory_num = luup.attr_get("subcategory_num", deviceID) or 0
-		if subcategory_num == 0 then
-			luup.attr_set("subcategory_num", "1", deviceID) -- door sensor
-		end
-
 		-- watches
-		luup.variable_watch("sensorWatch", SECURITYSID, "Tripped", deviceID)
+		luup.variable_watch("sensorWatch", SCENESID, "sl_SceneActivated", deviceID)
 		--luup.variable_watch("sensorWatch", SECURITYSID, "Armed", deviceID)
+
+		initVar(SCENESID, "sl_SceneActivated", "0", deviceID)
+		initVar(SCENESID, "sl_SceneDeactivated", "0", deviceID)
+		initVar(SCENESID, "Scenes", "", deviceID)
 
 		setVar(HASID, "Configured", 1, deviceID)
 		setVar(HASID, "CommFailure", 0, deviceID)
-
+		
 		-- status
 		luup.set_failure(0, deviceID)
 

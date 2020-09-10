@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<implementation>
+	<functions>
+		function startupPlugin(devNum)
+		luup.log("VirtualSceneController starting...")
+		VirtualSceneController1 = require("L_VirtualSceneController1")
+		sensorWatch = VirtualSceneController1.sensorWatch
+		return VirtualSceneController1.startPlugin(devNum)
+		end
+	</functions>
+	<startup>startupPlugin</startup>
+</implementation>
