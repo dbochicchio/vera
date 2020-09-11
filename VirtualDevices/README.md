@@ -21,7 +21,7 @@ This is supported out of the box on openLuup.
 Just download [this file](https://github.com/akbooer/openLuup/blob/master/openLuup/http_async.lua) if you're running this plug-in on Vera, and copy it with the plug-in files.
 Async HTTP is strongly recommended. The plug-in will automatically detect it and use it if present.
 
-# Async Update of commands
+# Async update of device's status
 Version 2.0 introduced support for async updates of device's commands.
 If you want to automatically acknowledge the command, simply return a status code from 200 (included) to 400 (excluded). That's what devices will do anyway.
 If you want to control the result, simply return a different status code (ie 112) and then update the variable on your own via Vera/Openluup HTTP interface.
@@ -95,12 +95,14 @@ If you're running the plug-in on OpenLuup, chooosing between an indipendent devi
 On Vera luup engine, instead, a master/children configuration will save memory (this could be a lot of memory, depending on how many devices you have).
 If you've already created your devices with a previous version, choose one as the master (it doesn't matter which one), and get its ID. Be sure to use the new D_Virtual*.xml files as device_json.
 Go to every device you want to adopt as children, and
- - remove *impl_file* attribute (it's not used)
+ - change *device_json* to the new *D_Virtual*.xml* version
+ - remove *impl_file* attribute (it's not used) on children
  - set *id_parent* to your master ID
 
 Do a *luup.reload()* and you should be good to go.
 This procedure is similar if you want to create new children for a given master.
-There's not limit to how many children a master could handle. It's suggested to have one master per controller and how many children you want.
+There's no limit to how many children a master could handle.
+It's suggested to have one master per controller and how many children you want.
 
 #### Switch On/Off (All)
 To turn ON, set *SetPowerURL* variable to the corresponding HTTP call.

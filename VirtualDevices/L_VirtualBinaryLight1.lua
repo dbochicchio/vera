@@ -1,7 +1,7 @@
 module("L_VirtualBinaryLight1", package.seeall)
 
 local _PLUGIN_NAME = "VirtualBinaryLight"
-local _PLUGIN_VERSION = "2.0.0"
+local _PLUGIN_VERSION = "2.0.1"
 
 local debugMode = false
 
@@ -270,8 +270,8 @@ function actionPower(status, devNum)
 
 	-- dimmer or not?
 	local deviceType = luup.attr_get("device_file", devNum)
-	local isDimmer = deviceType == "D_DimmableLight1.xml"
-	local isBlind = deviceType == "D_WindowCovering1.xml"
+	local isDimmer = deviceType == "D_DimmableLight1.xml" or deviceType == "D_VirtualDimmableLight1.xml" 
+	local isBlind = deviceType == "D_WindowCovering1.xml" or deviceType == "D_VirtualWindowCovering1.xml"
 
 	setVar(SWITCHSID, "Target", status and "1" or "0", devNum)
 
@@ -301,8 +301,8 @@ end
 function actionBrightness(newVal, devNum)
 	-- dimmer or not?
 	local deviceType = luup.attr_get("device_file", devNum)
-	local isDimmer = deviceType == "D_DimmableLight1.xml"
-	local isBlind = deviceType == "D_WindowCovering1.xml"
+	local isDimmer = deviceType == "D_DimmableLight1.xml" or deviceType == "D_VirtualDimmableLight1.xml" 
+	local isBlind = deviceType == "D_WindowCovering1.xml" or deviceType == "D_VirtualWindowCovering1.xml"
 
 	-- Dimming level change
 	newVal = math.floor(tonumber(newVal or 100))
@@ -386,7 +386,7 @@ function startPlugin(devNum)
 		initVar(SWITCHSID, "Status", "-1", deviceID)
 
 		-- device specific code
-		if deviceType == "D_DimmableLight1.xml" then
+		if deviceType == "D_DimmableLight1.xml" or deviceType == "D_VirtualDimmableLight1.xml" then
 			-- dimmer
 			initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
 			initVar(DIMMERSID, "LoadLevelStatus", "0", deviceID)
@@ -395,7 +395,7 @@ function startPlugin(devNum)
 			initVar(DIMMERSID, "AllowZeroLevel", "0", deviceID)
 
 			initVar(MYSID, COMMANDS_SETBRIGHTNESS, DEFAULT_ENDPOINT, deviceID)
-		elseif deviceType == "D_WindowCovering1.xml" then
+		elseif deviceType == "D_WindowCovering1.xml" or deviceType == "D_VirtualWindowCovering1.xml" then
 			-- roller shutter
 			initVar(DIMMERSID, "AllowZeroLevel", "1", deviceID)
 			initVar(DIMMERSID, "LoadLevelTarget", "0", deviceID)
