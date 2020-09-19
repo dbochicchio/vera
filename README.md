@@ -1,19 +1,22 @@
-# Vera
-Various plug-ins for Mios'Vera Platform (Luup engine).
+# Vera and openLuup Plug-ins
+Various plug-ins for Mios'Vera Platform (Luup engine) and openLuup.
 
-# Virtual HTTP Devices plug-in for Vera
+# Virtual HTTP Devices plug-in
 This plug-in represent virtual devices that performs HTTP calls, starting from standard Vera devices.
 This is 100% compatible with Vera UI, mobile apps and act as a standard control in that sense.
-The plug-in covers RGB Lights, Dimmers, Switch Lights and Heaters.
 
 [More info](https://github.com/dbochicchio/Vera-VirtualDevices//)
 
 # OpenSprinkler
-This plug-in offers support for OpenSprinkler under Luup.
+This plug-in offers support for OpenSprinkler for Vera/openLuup.
 
 [More info](https://github.com/dbochicchio/Vera-OpenSprinkler/)
 
-# Vera TSS for Alexa
-This plug-in offers TTS support for Alexa (and more) under Luup.
+# VeraAlexa
+This plug-in offers TTS support for Alexa (and more) for Vera/openLuup.
 
 [More info](https://github.com/dbochicchio/VeraAlexa/)
+
+# VeraTelegram
+Notifications via Telegram bot for Vera/openLuup.
+[More info](https://github.com/dbochicchio/vera-Telegram)
