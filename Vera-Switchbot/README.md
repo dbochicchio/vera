@@ -1,6 +1,6 @@
 # SwitchBot HTTP Server
 
-This script can be used to press a SwitchBot via an HTTP endpoint.
+[This script](SwitchBot-Server.js) can be used to press a SwitchBot via an HTTP endpoint.
 
 In order to install it, be sure to have node.js installed. 
 After that, just copy the script into your directory, and run *npm install* to restore your packages.
