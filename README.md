@@ -27,6 +27,11 @@ This is a MQTT Bridge for Openluup and Mios' Vera Platform (Luup engine).
 [More info](https://github.com/dbochicchio/luup-mqtt)
 
 # Vera-Switchbot
-SwitchBot HTTP Server to operate yoru bots via HTTP calls.
+SwitchBot HTTP Server to operate your bots via HTTP calls.
 
 [More info](Vera-Switchbot/)
+
+# Vera-Devices
+Collection of script to stabilize the Vera, fix devices and more.
+
+[More info](Scripts/)
