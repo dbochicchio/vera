@@ -34,4 +34,4 @@ SwitchBot HTTP Server to operate your bots via HTTP calls.
 # Vera-Devices
 Collection of script to stabilize the Vera, fix devices and more.
 
-[More info](Scripts/)
+[More info](Devices/)
