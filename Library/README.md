@@ -11,7 +11,7 @@ In your startup code, just register the library:
 VeraScenes = require("VeraScenes")
 ```
 
-Then, when referring to the functions container in VeraScenes, just use this:
+Then, when referring to the functions defined in VeraScenes, just use this:
 
 ```
 VeraScenes.turnLightsOff()
