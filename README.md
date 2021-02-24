@@ -1,5 +1,5 @@
 # Vera and openLuup Plug-ins
-Various plug-ins for Mios'Vera Platform (Luup engine) and openLuup.
+This is a collection of my scripts and plug-ins for Mios' Vera Platform (Luup engine) and openLuup.
 
 # Virtual HTTP Devices Plug-in
 This plug-in represent virtual devices that performs HTTP calls, starting from standard Vera devices.
@@ -22,14 +22,14 @@ This plug-in offers push for text, images and videos via Telegram Bots.
 [More info](https://github.com/dbochicchio/vera-Telegram)
 
 # MQTT Bridge for Luup
-This is a MQTT Bridge for Openluup and Mios' Vera Platform (Luup engine).
+This is a MQTT Bridge (written in C#) for Openluup and Mios' Vera Platform (Luup engine).
 
 [More info](https://github.com/dbochicchio/luup-mqtt)
 
 # Vera-Switchbot
-SwitchBot HTTP Server to operate your bots via HTTP calls.
+SwitchBot HTTP Server to operate your bots via HTTP calls. Luup friendly.
 
-[More info](Vera-Switchbot/)
+[More info](Switchbot-HTTPServer/)
 
 # Vera-Devices
 Collection of script to stabilize the Vera, fix devices and more.
