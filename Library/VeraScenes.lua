@@ -1,4 +1,4 @@
-module("VeraScenes", package.seeall) -- TODO: personalize it
+module("VeraScenes", package.seeall) -- TODO: customize the name if necessary
 
 -- this is just a stub
 function turnLightsOff()
