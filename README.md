@@ -26,7 +26,7 @@ This is a MQTT Bridge (written in C#) for Openluup and Mios' Vera Platform (Luup
 
 [More info](https://github.com/dbochicchio/luup-mqtt)
 
-# Vera-Switchbot
+# Switchbot HTTP Server
 SwitchBot HTTP Server to operate your bots via HTTP calls. Luup friendly.
 
 [More info](Switchbot-HTTPServer/)
