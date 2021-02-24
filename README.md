@@ -35,3 +35,8 @@ SwitchBot HTTP Server to operate your bots via HTTP calls.
 Collection of script to stabilize the Vera, fix devices and more.
 
 [More info](Devices/)
+
+# Vera-Library
+A sample of how to write libraries in a file and reference them at startup or via HTTP.
+
+[More info](Library/)
