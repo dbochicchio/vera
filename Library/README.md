@@ -3,6 +3,7 @@
 If you want to avoid writing a lot of scenes, a custom library is the way to go. This will work well when invoked from the outside (via HTTP, so, no triggers).
 
 Just add your code to *VeraScenes.lua* provide here. Remember to leave all your functions as public, if you want to call them.
+Upload the code via Vera's Web UI. Go to *Apps*, *Develop apps*, then *Luup files* and upload it.
 
 In your startup code, just register the library:
 
