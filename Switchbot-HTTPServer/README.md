@@ -13,7 +13,7 @@ Where *mac* is the Mac Address of your SwitchBot, that you can get from the Swit
 
 Your Linux box should have access to BLE. It's running OK on Windows, but it's less reliable.
 
-The HTTP server is based on [node-switchbot](https://github.com/futomi/node-switchbot) library. Other feetures, as battery or support for temperature sensors/roller shutters, could be implemented.
+The HTTP server is based on [node-switchbot](https://github.com/futomi/node-switchbot) library. Other features, as battery or support for temperature sensors/roller shutters, could be implemented.
 
 ## Use with Vera or openLuup
 
