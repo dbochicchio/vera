@@ -31,10 +31,10 @@ SwitchBot HTTP Server to operate your bots via HTTP calls. Luup friendly.
 
 [More info](Switchbot-HTTPServer/)
 
-# Vera-Devices
+# Vera-Scripts
 Collection of script to stabilize the Vera, fix devices and more.
 
-[More info](Devices/)
+[More info](Scripts/)
 
 # Vera-Library
 A sample of how to write libraries in a file and reference them at startup or via HTTP.
