@@ -1,3 +1,8 @@
+-- Run this scripts to stabilize your Vera
+-- Carefully read each one before executing it
+
+-- 2018/2021 Daniele Bochicchio https://github.com/dbochicchio/Vera
+
 -- 7.31 --	poll OFF for battery devices
 luup.log('Poll OFF for battery devices: start')
 

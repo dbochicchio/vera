@@ -1,4 +1,8 @@
-﻿devices = {
+﻿-- put this in your startup code or in a function, and call it
+-- this will copy tripped variable from master to child, everytime it's changed
+-- 2021 Daniele Bochicchio https://github.com/dbochicchio/Vera
+
+devices = {
 	[61] = {sensorID = 89},
 	[65] = {sensorID = 94},
 	[63] = {sensorID = 95}

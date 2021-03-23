@@ -3,7 +3,7 @@
 -- please create 4 function (turnOn, turnOff, arm, disarm) to execute the corresponding actions
 -- output code will be written to logs
 --
--- 2021 Daniele Bochicchio https://github.com/dbochicchio/Vera - 
+-- 2018/2021 Daniele Bochicchio https://github.com/dbochicchio/Vera
 
 local function split(pString, pPattern)
 		local Table = {}

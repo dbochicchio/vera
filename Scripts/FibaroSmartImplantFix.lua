@@ -1,4 +1,10 @@
-﻿local masterID = 301
+﻿-- This script will reconfigure your Fibaro Smart Implant to run under Vera
+-- In order to run it, change masterID to your master device.
+-- This is configured for 2 binary inputs and one temp sensor
+
+-- 2018/2021 Daniele Bochicchio https://github.com/dbochicchio/Vera
+
+local masterID = 301
 local desc = "SmartImplant"
 
 -- master
@@ -54,7 +60,7 @@ end
 
 luup.reload() -- and an hard browser refresh (CTRL+F5)
 
--- Or go to Variables and edit MultiChCapabilities to be like this:
+-- Or go to Variables and edit MultiChCapabilities to be like this: (8th is the temp sensor, just add more if you have more)
 -- 1,7,1,94,108,34,152,159,
 -- 2,7,1,94,108,34,152,159,
 -- 3,33,1,94,108,34,152,159,
