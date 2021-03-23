@@ -14,8 +14,8 @@ luup.attr_set("device_type", "urn:schemas-micasaverde-com:device:ComboDevice:1",
 luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "BasicSetCapabilities", "00=Ue1,FF=Te1,2=Ue2,1=Te2", masterID)
 luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "VariablesSet", "20-IN1 mode,1d,1,21-IN2 mode,1d,1,52-IN2 value for ON,2d,1,54-IN2 value for OFF,2d,2,67-ext temp change external channel,2d,3,68-ext temp periodical report,2d,3600", masterID)
 luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "MultiChCapabilities", "1,7,1,94,108,34,152,159,\n2,7,1,94,108,34,152,159,\n3,33,1,94,108,34,152,159,\n4,33,1,94,108,34,152,159,\n5,16,1,94,108,34,152,159,\n6,16,1,94,108,34,152,159,\n7,33,1,94,133,142,89,49,113,108,34,152,159\n8,33,1,94,133,142,89,49,113,108,34,152,159", masterID)
-luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "AssociationSet", "1,z.7;1,z.8", masterID) -- add 1,z.9 to 11 if you have other children
-luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "MultiChSensType", "m3=15,m4=15,m7=1,m8=1", masterID) -- for children
+luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "AssociationSet", "1,z.7;1,z.8", masterID) -- add 1,z.9 to 11 if you have other temp children
+luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "MultiChSensType", "m3=15,m4=15,m7=1,m8=1", masterID) -- for children -- add m9=1 to 11 for 2nd sensor, etc
 luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "PollSettings", "0", masterID) -- polling to be enabled for temperature
 luup.variable_set("urn:micasaverde-com:serviceId:HaDevice1", "ChildrenSameRoom", "0", masterID) -- if you want to freely move children in other rooms
 luup.attr_set("name", (desc .. " Master"), masterID)

@@ -26,7 +26,7 @@ luup.attr_set("EnableNightlyHeal", 0, 0)
 luup.log('disable wake up interval: start')
 for k, v in pairs(luup.devices) do
 	local var = luup.variable_get("urn:micasaverde-com:serviceId:ZWaveDevice1", "WakeupInterval",k)
-	if var ~= nil	and var ~= 0 and v.device_num_parent== 1	then 
+	if var ~= nil and var ~= 0 and v.device_num_parent== 1 then 
 		luup.log('wake up interval disabled: #' .. tostring(k))
 		luup.variable_set("urn:micasaverde-com:serviceId:ZWaveDevice1", "DisableWakeupARR_NNU", "1", k)
 	end
